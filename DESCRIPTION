@@ -1,0 +1,36 @@
+Package: codeminerapi
+Title: REST API Service for Clinical Code Mapping
+Version: 0.1.0
+Authors@R: 
+    person(given = "Alasdair",
+           family = "Warwick",
+           role = c("aut", "cre"),
+           email = "alasdair.warwick.19@ucl.ac.uk",
+           comment = c(ORCID = "0000-0002-0800-2890"))
+Description: A Plumber-based REST API service that exposes codeminer package 
+    functionality as web endpoints. Provides both public and customer-specific 
+    API endpoints for clinical code mapping and lookup services.
+License: AGPL (>= 3)
+URL: https://github.com/your-org/codeminer-api
+BugReports: https://github.com/your-org/codeminer-api/issues
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Suggests: 
+    testthat (>= 3.0.0),
+    httptest
+Config/testthat/edition: 3
+Imports: 
+    codeminer,
+    plumber,
+    jsonlite,
+    httr,
+    DBI,
+    duckdb,
+    logger,
+    config,
+    jose,
+    dotenv
+Remotes: 
+    github::your-org/codeminer

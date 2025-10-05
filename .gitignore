@@ -1,0 +1,43 @@
+# R specific
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Rproj.user/
+
+# R package specific
+*.tar.gz
+*.Rcheck/
+.Rd2pdf*
+
+# RStudio specific
+*.Rproj
+
+# Environment variables
+.Renviron
+.env
+
+# Development tools
+.DS_Store
+Thumbs.db
+
+# Plumber specific
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Temporary files
+*~
+*.swp
+*.tmp
+
+# API keys and secrets
+config/local.yml
+secrets/
