@@ -22,6 +22,7 @@ Suggests:
     callr
 Config/testthat/edition: 3
 Imports: 
+    cli,
     codeminer,
     plumber
 Remotes: 

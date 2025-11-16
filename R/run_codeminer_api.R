@@ -18,20 +18,11 @@ run_codeminer_api <- function(
 ) {
   # Check codeminer dependency
   if (!requireNamespace("codeminer", quietly = TRUE)) {
-    if (interactive()) {
-      message("The 'codeminer' package is required to run the API server.")
-      ans <- utils::menu(
-        c("Install codeminer now", "Cancel"),
-        title = "Missing dependency"
-      )
-      if (ans == 1) {
-        install.packages("codeminer")
-      } else {
-        stop("Cannot start the API server without the 'codeminer' package.")
-      }
-    } else {
-      stop("The 'codeminer' package is required to run the API server.")
-    }
+    cli::cli_abort(c(
+      "The {.pkg codeminer} package is required to run the API server.",
+      "i" = "Install it with:",
+      " " = "{.code remotes::install_github('codeminer-io/codeminer')}"
+    ))
   }
 
   # Build the API router
@@ -45,7 +36,11 @@ run_codeminer_api <- function(
   # Background mode
   if (background) {
     if (!requireNamespace("callr", quietly = TRUE)) {
-      stop("Background mode requires the 'callr' package.")
+      cli::cli_abort(c(
+        "Background mode requires the {.pkg callr} package.",
+        "i" = "Install it with:",
+        " " = "{.code install.packages('callr')}"
+      ))
     }
 
     bg <- callr::r_bg(
@@ -64,11 +59,7 @@ run_codeminer_api <- function(
     )
 
     if (!quiet) {
-      message(sprintf(
-        "CodeMiner API running in background at http://%s:%s",
-        host,
-        port
-      ))
+      cli::cli_alert_success("CodeMiner API running in background at {.url http://{host}:{port}}")
     }
 
     return(invisible(bg))
@@ -76,7 +67,7 @@ run_codeminer_api <- function(
 
   # Foreground mode
   if (!quiet) {
-    message(sprintf("Starting CodeMiner API at http://%s:%s", host, port))
+    cli::cli_alert_info("Starting CodeMiner API at {.url http://{host}:{port}}")
   }
 
   plumber::pr_run(pr, host = host, port = port, quiet = quiet, ...)
