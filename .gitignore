@@ -41,3 +41,4 @@ docker-compose.override.yml
 # API keys and secrets
 config/local.yml
 secrets/
+.Rproj.user
