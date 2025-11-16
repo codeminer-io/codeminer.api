@@ -17,7 +17,8 @@
 .Renviron
 .env
 
-# Development tools
+# IDE specific
+.vscode/
 .DS_Store
 Thumbs.db
 
@@ -41,4 +42,3 @@ docker-compose.override.yml
 # API keys and secrets
 config/local.yml
 secrets/
-.Rproj.user
