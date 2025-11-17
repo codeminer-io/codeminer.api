@@ -21,7 +21,7 @@ run_codeminer_api(
 \item{background}{Logical. Run API in the background? (default FALSE)
 When TRUE, returns a process handle that can be used to manage the server.}
 
-\item{docs}{Logical. Should swagger docs be enabled? (default TRUE)}
+\item{docs}{Logical. Should Swagger docs be enabled? (default TRUE)}
 
 \item{quiet}{Logical. Suppress startup messages? (default FALSE)}
 

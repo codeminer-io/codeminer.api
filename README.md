@@ -73,4 +73,5 @@ See `vignette("codeminer.api")` for detailed documentation including:
 ## API Endpoints
 
 - **`GET /DESCRIPTION`**: Search codes by description pattern
+- **`GET /CODES`**: Look up specific codes by code value
 - **`GET /__docs__/`**: Interactive API documentation (Swagger UI)
