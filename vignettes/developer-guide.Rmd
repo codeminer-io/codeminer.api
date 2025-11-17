@@ -31,14 +31,15 @@ Create a new file in `R/` following the naming pattern `add_*_endpoint.R`:
 #' @return The modified plumber router
 #' @keywords internal
 add_myendpoint_endpoint <- function(pr) {
-  pr |> 
-    plumber::pr_get(
-      path = "/myendpoint",
-      handler = function(param1, param2) {
-        # Your endpoint logic here
-        codeminer::my_function(param1, param2)
-      }
-    )
+  pr$handle(
+    "GET",
+    "/myendpoint",
+    function(param1, param2) {
+      # Your endpoint logic here
+      codeminer::my_function(param1, param2)
+    }
+  )
+  pr
 }
 ```
 
