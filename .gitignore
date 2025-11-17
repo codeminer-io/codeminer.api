@@ -13,6 +13,9 @@
 # RStudio specific
 *.Rproj
 
+# pkgdown
+docs/
+
 # Environment variables
 .Renviron
 .env
@@ -42,3 +45,5 @@ docker-compose.override.yml
 # API keys and secrets
 config/local.yml
 secrets/
+inst/doc
+docs
