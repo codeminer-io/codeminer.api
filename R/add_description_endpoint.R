@@ -1,3 +1,11 @@
+#' Add DESCRIPTION endpoint to API router
+#'
+#' Adds a GET endpoint at `/DESCRIPTION` that wraps `codeminer::DESCRIPTION()`.
+#' Accepts `pattern` (regex pattern) and `code_type` parameters.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
 add_description_endpoint <- function(pr) {
   pr$handle(
     "GET",
