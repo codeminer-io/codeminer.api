@@ -16,7 +16,7 @@ check_package_available <- function(package) {
 #' @param port Port number (default 8000)
 #' @param background Logical. Run API in the background? (default FALSE)
 #'   When TRUE, returns a process handle that can be used to manage the server.
-#' @param docs Logical. Should swagger docs be enabled? (default TRUE)
+#' @param docs Logical. Should Swagger docs be enabled? (default TRUE)
 #' @param quiet Logical. Suppress startup messages? (default FALSE)
 #' @param ... Additional arguments passed to [plumber::pr_run()]
 #'
