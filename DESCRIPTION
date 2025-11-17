@@ -1,4 +1,4 @@
-Package: codeminerapi
+Package: codeminer.api
 Title: REST API Service for Clinical Code Mapping
 Version: 0.0.0.9000
 Authors@R: 
@@ -19,7 +19,8 @@ RoxygenNote: 7.3.3
 Suggests: 
     testthat (>= 3.0.0),
     httptest,
-    callr
+    callr,
+    withr
 Config/testthat/edition: 3
 Imports: 
     cli,
