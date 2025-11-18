@@ -18,12 +18,12 @@ knitr::opts_chunk$set(
 
 To add a new endpoint to the API:
 
-### 1. Create an endpoint helper function
+### 1. Add an endpoint helper function
 
-Create a new file in `R/` following the naming pattern `add_*_endpoint.R`:
+Add your new endpoint function to `R/endpoints.R`:
 
 ```r
-# R/add_myendpoint_endpoint.R
+# R/endpoints.R
 
 #' Add my endpoint to plumber router
 #'
@@ -61,16 +61,14 @@ create_codeminer_api <- function() {
 
 ### 3. Write tests
 
-Create tests in `tests/testthat/test-add_myendpoint_endpoint.R`:
+Add a test to `tests/testthat/test-endpoints.R`:
 
 ```r
-test_that("add_myendpoint_endpoint adds /myendpoint path", {
-  test_endpoint_addition(
-    add_myendpoint_endpoint,
-    "myendpoint",
-    "/myendpoint"
-  )
-})
+test_endpoint_addition(
+  add_myendpoint_endpoint,
+  "add_myendpoint_endpoint",
+  "/myendpoint"
+)
 ```
 
 The `test_endpoint_addition()` helper (defined in `tests/testthat/helper-endpoint-tests.R`) verifies that:
