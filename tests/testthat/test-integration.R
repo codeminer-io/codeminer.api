@@ -23,7 +23,7 @@ test_that("API endpoints respond correctly in background mode", {
   })
 
   # Give server time to start and check for errors
-  Sys.sleep(1)
+  Sys.sleep(2)
 
   # If process died, get the error output
   if (!bg$is_alive()) {
@@ -91,7 +91,7 @@ test_that("API serves Swagger documentation by default", {
     }
   })
 
-  Sys.sleep(1)
+  Sys.sleep(2)
 
   # Check if process is alive, skip with error info if not
   if (!bg$is_alive()) {
@@ -134,7 +134,7 @@ test_that("API can disable Swagger documentation", {
     }
   })
 
-  Sys.sleep(1)
+  Sys.sleep(2)
 
   # Check if process is alive, skip with error info if not
   if (!bg$is_alive()) {
