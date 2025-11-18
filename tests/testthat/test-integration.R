@@ -22,21 +22,20 @@ test_that("API endpoints respond correctly in background mode", {
     }
   })
 
-  # Give server time to start and check for errors
+  # Give server time to start
   Sys.sleep(2)
 
-  # If process died, get the error output
+  # Check server is running - fail if it died
   if (!bg$is_alive()) {
     err_output <- bg$read_all_error()
     std_output <- bg$read_all_output()
-    skip(sprintf(
+    fail(sprintf(
       "Background process failed to start.\nStderr: %s\nStdout: %s",
       err_output,
       std_output
     ))
   }
 
-  # Check server is running
   expect_true(bg$is_alive())
 
   # Test DESCRIPTION endpoint
@@ -93,9 +92,9 @@ test_that("API serves Swagger documentation by default", {
 
   Sys.sleep(2)
 
-  # Check if process is alive, skip with error info if not
+  # Check if process is alive, fail if not
   if (!bg$is_alive()) {
-    skip(sprintf(
+    fail(sprintf(
       "Background process failed. Stderr: %s",
       bg$read_all_error()
     ))
@@ -136,9 +135,9 @@ test_that("API can disable Swagger documentation", {
 
   Sys.sleep(2)
 
-  # Check if process is alive, skip with error info if not
+  # Check if process is alive, fail if not
   if (!bg$is_alive()) {
-    skip(sprintf(
+    fail(sprintf(
       "Background process failed. Stderr: %s",
       bg$read_all_error()
     ))
