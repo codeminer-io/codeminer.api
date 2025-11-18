@@ -1,0 +1,86 @@
+---
+title: "Developer Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Developer Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Adding New Endpoints
+
+To add a new endpoint to the API:
+
+### 1. Add an endpoint helper function
+
+Add your new endpoint function to `R/endpoints.R`:
+
+```r
+# R/endpoints.R
+
+#' Add my endpoint to plumber router
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_myendpoint_endpoint <- function(pr) {
+  pr$handle(
+    "GET",
+    "/myendpoint",
+    function(param1, param2) {
+      # Your endpoint logic here
+      codeminer::my_function(param1, param2)
+    }
+  )
+  pr
+}
+```
+
+### 2. Register in `create_codeminer_api()`
+
+Add your endpoint to the router composition in `R/create_codeminer_api.R`:
+
+```r
+create_codeminer_api <- function() {
+  pr <- plumber::pr()
+  
+  pr <- add_description_endpoint(pr)
+  pr <- add_codes_endpoint(pr)
+  pr <- add_myendpoint_endpoint(pr)  # Add your endpoint here
+  
+  pr
+}
+```
+
+### 3. Write tests
+
+Add a test to `tests/testthat/test-endpoints.R`:
+
+```r
+test_endpoint_addition(
+  add_myendpoint_endpoint,
+  "add_myendpoint_endpoint",
+  "/myendpoint"
+)
+```
+
+The `test_endpoint_addition()` helper (defined in `tests/testthat/helper-endpoint-tests.R`) verifies that:
+
+- The endpoint function exists and is callable
+- The specified path is added to the router
+- The endpoint appears in the API paths list
+
+## Background mode when developing
+
+When you run the API in background mode with `run_codeminer_api(background = TRUE)`
+or start it via `callr::r_bg()` the server runs in a fresh R process which loads the
+installed package from your R library. That means changes you've made to the
+source files in the package directory will not be picked up by the background
+process until you reinstall the package.

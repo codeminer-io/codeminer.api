@@ -1,87 +1,77 @@
-# codeminer-api
 
-REST API service for clinical code mapping using the codeminer R package.
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
-## Overview
+# codeminer.api
 
-This repository provides a Plumber-based REST API that exposes the functionality of the `codeminer` R package as web endpoints. It enables:
+<!-- badges: start -->
 
-- **Public API endpoints** for general clinical code mapping
-- **Customer-specific endpoints** with authentication for premium features
-- **Scalable deployment** options for SaaS hosting
-- **Direct integration** with the core codeminer package
+<!-- badges: end -->
 
-## Features
+`codeminer.api` provides a REST API wrapper for the
+[`codeminer`](https://github.com/codeminer-io/codeminer) package,
+enabling access to clinical code mappings through HTTP endpoints.
 
-- 🔍 **Code Lookup**: Search and validate clinical codes
-- 🔄 **Code Mapping**: Transform between coding systems  
-- 🌳 **Hierarchical Queries**: Navigate code hierarchies
-- 🔐 **Authentication**: PAT-based access control for customers
-- 📊 **Customer Data**: Individual DuckDB instances per customer
-- 📝 **Documentation**: Interactive API documentation
+## Installation
+
+Install from GitHub:
+
+``` r
+# install.packages("pak")
+pak::pak("codeminer-io/codeminer.api")
+```
+
+## Quick Start
+
+``` r
+library(codeminer.api)
+
+# Set up database path
+Sys.setenv(CODEMINER_DB_PATH = "path/to/database.duckdb")
+
+# Start API server
+run_codeminer_api()
+```
+
+Visit `http://127.0.0.1:8000/__docs__/` for interactive API
+documentation.
+
+## Example with Dummy Data
+
+``` r
+library(codeminer.api)
+
+# Create temporary database
+db_path <- tempfile(fileext = ".duckdb")
+codeminer::create_dummy_database(db_path)
+Sys.setenv(CODEMINER_DB_PATH = db_path)
+
+# Start API in background
+bg <- run_codeminer_api(background = TRUE, port = 8888, quiet = TRUE)
+
+# Query the API
+library(httr2)
+response <- request("http://127.0.0.1:8888/DESCRIPTION") |>
+  req_url_query(pattern = "asthma", code_type = "icd10") |>
+  req_perform()
+
+resp_body_json(response)
+
+# Stop server
+bg$kill()
+```
+
+## Learn More
+
+See `vignette("codeminer.api")` for detailed documentation including:
+
+- Background vs foreground modes
+- API endpoint reference
+- Process management
+- Troubleshooting guide
+- Production deployment tips
 
 ## API Endpoints
 
-### Public Endpoints
-- `GET /api/v1/codes/lookup` - Look up code information
-- `GET /api/v1/codes/map` - Map between coding systems
-- `GET /api/v1/codes/children` - Get child codes
-- `GET /api/v1/health` - Health check endpoint
-
-### Customer Endpoints (PAT required)
-- `POST /api/v1/customer/codelists` - Manage custom codelists
-- `GET /api/v1/customer/data` - Access customer-specific data
-- `POST /api/v1/customer/bulk` - Bulk processing operations
-
-## Development
-
-### Prerequisites
-- R (>= 4.1.0)
-- codeminer package
-- Plumber
-- Docker (for containerized deployment)
-
-### Local Development
-
-```r
-# Install dependencies
-devtools::install_deps()
-
-# Start the API server
-source("plumber.R")
-```
-
-The API will be available at `http://localhost:8000`
-
-### Docker Deployment
-
-```bash
-docker build -t codeminer-api .
-docker run -p 8000:8000 codeminer-api
-```
-
-## Authentication
-
-Customer endpoints require a Personal Access Token (PAT) in the `Authorization` header:
-
-```
-Authorization: Bearer <your-pat-token>
-```
-
-## Configuration
-
-Environment variables:
-- `CODEMINER_DB_PATH`: Path to the main database
-- `CUSTOMER_DB_DIR`: Directory for customer databases  
-- `JWT_SECRET`: Secret for token validation
-- `LOG_LEVEL`: Logging level (DEBUG, INFO, WARN, ERROR)
-
-## Related Projects
-
-- **[codeminer](https://github.com/your-org/codeminer)**: Core R package
-- **[codeminer-py](https://github.com/your-org/codeminer-py)**: Python client library
-- **[codeminer-app](https://github.com/your-org/codeminer-app)**: Web application
-
-## License
-
-AGPL-3 © Alasdair Warwick
+- **`GET /DESCRIPTION`**: Search codes by description pattern
+- **`GET /CODES`**: Look up specific codes by code value
+- **`GET /__docs__/`**: Interactive API documentation (Swagger UI)

@@ -1,0 +1,19 @@
+url: https://codeminer-io.github.io/codeminer.api/
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [home, intro, reference, articles]
+  components:
+    intro:
+      text: "Get started"
+      href: articles/codeminer.api.html
+
+articles:
+  - title: "Getting started"
+    contents:
+      - codeminer.api
+  - title: "Developer guide"
+    contents:
+      - developer-guide
