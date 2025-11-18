@@ -2,3 +2,4 @@
 
 export(create_codeminer_api)
 export(run_codeminer_api)
+export(run_codeminer_api_foreground)
