@@ -76,3 +76,11 @@ The `test_endpoint_addition()` helper (defined in `tests/testthat/helper-endpoin
 - The endpoint function exists and is callable
 - The specified path is added to the router
 - The endpoint appears in the API paths list
+
+## Background mode when developing
+
+When you run the API in background mode with `run_codeminer_api(background = TRUE)`
+or start it via `callr::r_bg()` the server runs in a fresh R process which loads the
+installed package from your R library. That means changes you've made to the
+source files in the package directory will not be picked up by the background
+process until you reinstall the package.
