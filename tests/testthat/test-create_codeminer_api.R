@@ -12,7 +12,7 @@ test_that("create_codeminer_api creates router with multiple endpoints", {
   expect_gte(length(routes), 2)
   
   # Verify specific endpoint paths exist (confirms helpers were invoked)
-  paths <- sapply(routes, function(route) route$path)
+  paths <- vapply(routes, function(route) route$path, character(1))
   expect_true("/DESCRIPTION" %in% paths)
   expect_true("/CODES" %in% paths)
 })

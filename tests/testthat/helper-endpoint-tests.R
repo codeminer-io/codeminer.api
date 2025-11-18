@@ -23,7 +23,7 @@ test_endpoint_addition <- function(
       expect_true(length(routes) > 0)
 
       # Check that the specific endpoint path exists
-      paths <- as.character(lapply(routes, function(route) route$path))
+      paths <- vapply(routes, function(route) route$path, character(1))
       expect_true(
         expected_path %in% paths
       )
