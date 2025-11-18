@@ -1,12 +1,3 @@
-#' Check if a package is available
-#'
-#' @param package Package name to check
-#' @return Logical indicating if package is available
-#' @keywords internal
-check_package_available <- function(package) {
-  requireNamespace(package, quietly = TRUE)
-}
-
 #' Run the CodeMiner API
 #'
 #' Start the CodeMiner API server in either foreground or background mode.
@@ -87,15 +78,6 @@ run_codeminer_api <- function(
     ))
   }
 
-  # Check codeminer dependency
-  if (!check_package_available("codeminer")) {
-    cli::cli_abort(c(
-      "The {.pkg codeminer} package is required to run the API server.",
-      "i" = "Install it with:",
-      " " = "{.code remotes::install_github('codeminer-io/codeminer')}"
-    ))
-  }
-
   # Build the API router
   pr <- create_codeminer_api()
 
@@ -106,14 +88,6 @@ run_codeminer_api <- function(
 
   # Background mode
   if (background) {
-    if (!check_package_available("callr")) {
-      cli::cli_abort(c(
-        "Background mode requires the {.pkg callr} package.",
-        "i" = "Install it with:",
-        " " = "{.code install.packages('callr')}"
-      ))
-    }
-
     bg <- callr::r_bg(
       func = function(host, port, docs, quiet, env_vars) {
         # Set environment variables in background process

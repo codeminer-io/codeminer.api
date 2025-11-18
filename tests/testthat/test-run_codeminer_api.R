@@ -1,46 +1,3 @@
-test_that("run_codeminer_api fails when codeminer not available", {
-  # Mock file.exists to return TRUE (skip db check)
-  local_mocked_bindings(
-    file.exists = function(path) TRUE,
-    .package = "base"
-  )
-  
-  # Mock check_package_available to return FALSE
-  local_mocked_bindings(
-    check_package_available = function(pkg) FALSE,
-    .package = "codeminer.api"
-  )
-
-  expect_error(
-    run_codeminer_api(),
-    "codeminer.*required"
-  )
-})
-
-test_that("run_codeminer_api fails when callr not available for background mode", {
-  # Mock file.exists to return TRUE (skip db check)
-  local_mocked_bindings(
-    file.exists = function(path) TRUE,
-    .package = "base"
-  )
-  
-  # Mock: codeminer available, callr not available
-  local_mocked_bindings(
-    check_package_available = function(pkg) {
-      if (pkg == "codeminer") return(TRUE)
-      if (pkg == "callr") return(FALSE)
-      FALSE
-    },
-    create_codeminer_api = function() plumber::pr(),
-    .package = "codeminer.api"
-  )
-
-  expect_error(
-    run_codeminer_api(background = TRUE),
-    "requires the callr package"
-  )
-})
-
 test_that("run_codeminer_api creates router and calls pr_run in foreground mode", {
   # Track if pr_run was called and with what arguments
   pr_run_called <- FALSE
@@ -53,7 +10,6 @@ test_that("run_codeminer_api creates router and calls pr_run in foreground mode"
   )
 
   local_mocked_bindings(
-    check_package_available = function(pkg) TRUE,
     create_codeminer_api = function() plumber::pr(),
     .package = "codeminer.api"
   )
@@ -94,7 +50,6 @@ test_that("run_codeminer_api disables docs when docs = FALSE", {
   )
 
   local_mocked_bindings(
-    check_package_available = function(pkg) TRUE,
     create_codeminer_api = function() plumber::pr(),
     .package = "codeminer.api"
   )
@@ -129,7 +84,6 @@ test_that("run_codeminer_api calls callr::r_bg in background mode", {
   )
 
   local_mocked_bindings(
-    check_package_available = function(pkg) TRUE,
     create_codeminer_api = function() plumber::pr(),
     .package = "codeminer.api"
   )

@@ -4,7 +4,7 @@ test_that("API endpoints respond correctly in background mode", {
   skip_if_not_installed("callr")
   skip_if_not_installed("httr2")
   skip_if_offline()
-  
+
   # Database is set up by tests/testthat/setup.R using codeminer::create_dummy_database()
 
   # Start API in background
@@ -24,14 +24,15 @@ test_that("API endpoints respond correctly in background mode", {
 
   # Give server time to start and check for errors
   Sys.sleep(1)
-  
+
   # If process died, get the error output
   if (!bg$is_alive()) {
     err_output <- bg$read_all_error()
     std_output <- bg$read_all_output()
     skip(sprintf(
       "Background process failed to start.\nStderr: %s\nStdout: %s",
-      err_output, std_output
+      err_output,
+      std_output
     ))
   }
 
@@ -72,7 +73,7 @@ test_that("API serves Swagger documentation by default", {
   skip_if_not_installed("callr")
   skip_if_not_installed("httr2")
   skip_if_offline()
-  
+
   # Database is set up by tests/testthat/setup.R using codeminer::create_dummy_database()
 
   # Start API with docs enabled (default)
@@ -91,7 +92,7 @@ test_that("API serves Swagger documentation by default", {
   })
 
   Sys.sleep(1)
-  
+
   # Check if process is alive, skip with error info if not
   if (!bg$is_alive()) {
     skip(sprintf(
@@ -115,7 +116,7 @@ test_that("API can disable Swagger documentation", {
   skip_if_not_installed("callr")
   skip_if_not_installed("httr2")
   skip_if_offline()
-  
+
   # Database is set up by tests/testthat/setup.R using codeminer::create_dummy_database()
 
   # Start API with docs disabled
@@ -134,7 +135,7 @@ test_that("API can disable Swagger documentation", {
   })
 
   Sys.sleep(1)
-  
+
   # Check if process is alive, skip with error info if not
   if (!bg$is_alive()) {
     skip(sprintf(
