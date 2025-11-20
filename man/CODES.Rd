@@ -2,26 +2,29 @@
 % Please edit documentation in R/client.R
 \name{CODES}
 \alias{CODES}
-\title{Look up specific clinical codes}
+\title{Look up descriptions for clinical codes}
 \usage{
 CODES(codes, code_type, .return_raw = FALSE)
 }
 \arguments{
-\item{codes}{Character vector. The clinical code(s)
-to look up (e.g., \code{c("J45", "E11", "I10")}).}
+\item{codes}{character. Vector of codes to lookup. If passing \code{"all"}, returns all codes.}
 
-\item{code_type}{Character. Type of clinical code system (e.g., "icd10", "icd9", "opcs4").}
+\item{code_type}{character. Type of clinical code system to be searched.
+Depends on what is available in the lookup tables. See \code{\link[codeminer:add_lookup_table]{add_lookup_table()}}
+on how to add new lookup tables. This can also be configured through the \code{codeminer.code_type} option.}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as tibble.}
 }
 \value{
-A tibble with columns for code, description, and code_type (if \code{.return_raw = FALSE}),
-or an httr2 response object (if \code{.return_raw = TRUE}).
+A \code{data.frame} containing the codes and their descriptions
 }
 \description{
-Client function to query the CodeMiner API's \verb{/CODES} endpoint.
-Retrieves descriptions for specific clinical codes.
+Returns a data frame including descriptions for the codes of interest
+}
+\details{
+\code{CODES_LIKE} searches for codes that match a given regular expression.
+The matching is case-insensitive.
 }
 \examples{
 \dontrun{

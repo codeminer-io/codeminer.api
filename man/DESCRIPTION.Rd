@@ -2,25 +2,26 @@
 % Please edit documentation in R/client.R
 \name{DESCRIPTION}
 \alias{DESCRIPTION}
-\title{Search clinical codes by description pattern}
+\title{Search for codes that match a description}
 \usage{
 DESCRIPTION(pattern, code_type, .return_raw = FALSE)
 }
 \arguments{
-\item{pattern}{Character. Regular expression pattern to search for in code descriptions.}
+\item{pattern}{The description to search for. See \code{\link[stringr:str_detect]{stringr::str_detect()}} for details.}
 
-\item{code_type}{Character. Type of clinical code system (e.g., "icd10", "icd9", "opcs4").}
+\item{code_type}{character. Type of clinical code system to be searched.
+Depends on what is available in the lookup tables. See \code{\link[codeminer:add_lookup_table]{add_lookup_table()}}
+on how to add new lookup tables. This can also be configured through the \code{codeminer.code_type} option.}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as tibble.}
 }
 \value{
-A tibble with columns for code, description, and code_type (if \code{.return_raw = FALSE}),
-or an httr2 response object (if \code{.return_raw = TRUE}).
+The result of \code{\link[codeminer:CODES]{CODES()}} for codes that match the description, or a character vector of codes if
+\code{codes_only} is \code{TRUE}.
 }
 \description{
-Client function to query the CodeMiner API's \verb{/DESCRIPTION} endpoint.
-Searches for clinical codes matching a text pattern in their descriptions.
+Returns a data frame with clinical codes that match the provided description pattern.
 }
 \examples{
 \dontrun{

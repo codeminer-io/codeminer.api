@@ -7,6 +7,7 @@
 #' @param res Plumber response object
 #' @return List to be serialized as JSON error response
 #' @keywords internal
+#' @noRd
 format_backend_error <- function(e, res) {
   warning(
     "Backend error: ",

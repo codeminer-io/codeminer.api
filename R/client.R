@@ -1,15 +1,6 @@
-#' Search clinical codes by description pattern
-#'
-#' Client function to query the CodeMiner API's `/DESCRIPTION` endpoint.
-#' Searches for clinical codes matching a text pattern in their descriptions.
-#'
-#' @param pattern Character. Regular expression pattern to search for in code descriptions.
-#' @param code_type Character. Type of clinical code system (e.g., "icd10", "icd9", "opcs4").
+#' @inherit codeminer::DESCRIPTION
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
-#'
-#' @return A tibble with columns for code, description, and code_type (if `.return_raw = FALSE`),
-#'   or an httr2 response object (if `.return_raw = TRUE`).
 #'
 #' @examples
 #' \dontrun{
@@ -35,19 +26,8 @@ DESCRIPTION <- function(pattern, code_type, .return_raw = FALSE) {
   )
 }
 
-#' Look up specific clinical codes
-#'
-#' Client function to query the CodeMiner API's `/CODES` endpoint.
-#' Retrieves descriptions for specific clinical codes.
-#'
-#' @param codes Character vector. The clinical code(s)
-#'   to look up (e.g., `c("J45", "E11", "I10")`).
-#' @param code_type Character. Type of clinical code system (e.g., "icd10", "icd9", "opcs4").
-#' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
-#'   If `FALSE` (default), parse JSON and return as tibble.
-#'
-#' @return A tibble with columns for code, description, and code_type (if `.return_raw = FALSE`),
-#'   or an httr2 response object (if `.return_raw = TRUE`).
+#' @inherit codeminer::CODES
+#' @inheritParams DESCRIPTION
 #'
 #' @examples
 #' \dontrun{
