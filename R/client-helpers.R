@@ -67,6 +67,23 @@ api_request <- function(
         call = call
       )
     },
+    httr2_http_422 = function(e) {
+      # Extract backend error message from response body
+      backend_error <- tryCatch(
+        {
+          body <- httr2::resp_body_json(e$resp)
+          body$message %||% conditionMessage(e)
+        },
+        error = function(e2) conditionMessage(e)
+      )
+
+      cli::cli_abort(
+        c(
+          unlist(backend_error, use.names = TRUE)
+        ),
+        call = call
+      )
+    },
     httr2_error = function(e) {
       # Catch all other httr2 errors
       stop(

@@ -21,7 +21,45 @@ create_codeminer_api <- function() {
   pr <- add_health_endpoint(pr)
   pr <- add_description_endpoint(pr)
   pr <- add_codes_endpoint(pr)
+  pr <- add_test_endpoint(pr)
   # pr <- add_children_endpoint(pr)
 
+  pr
+}
+
+# TESTS -------------------------------------------------------------------
+
+#' Test
+#'
+#' @returns error
+#' @noRd
+#' @export
+test <- function() {
+  api_request(
+    endpoint = "/TEST",
+    query_params = NULL,
+    .return_raw = FALSE
+  )
+}
+
+add_test_endpoint <- function(pr) {
+  pr$handle(
+    method = "GET",
+    path = "/TEST",
+    handler = function(req, res, codes, code_type) {
+      tryCatch(
+        {
+          error_message <- c(x = "error", i = "info")
+          cli::cli_abort(
+            "error",
+            class = "codeminer_arg_validation_error",
+            cli_error_message = error_message
+          )
+        },
+        codeminer_arg_validation_error = function(e)
+          format_backend_error(e, res)
+      )
+    }
+  )
   pr
 }
