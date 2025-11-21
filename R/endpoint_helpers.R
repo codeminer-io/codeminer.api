@@ -22,23 +22,21 @@ format_backend_error.default <- function(e, res) {
     call. = FALSE
   )
   res$status <- 500
+
   list(
-    error = "Backend Error",
-    # use `list()` to propagate cli error message (TODO - custom codeminer error classes)
-    message = list(x = conditionMessage(e))
+    error_type = "Backend Error",
+    error_message = list(x = conditionMessage(e))
   )
 }
 
 #' @keywords internal
-format_backend_error.codeminer_arg_validation_error <- function(e, res) {
+format_backend_error.codeminer_error <- function(e, res) {
   warning(
     "Backend error: ",
     conditionMessage(e),
     immediate. = TRUE,
     call. = FALSE
   )
-  # Extract original cli message specification vector
-  msg <- e$cli_error_message
 
   warning(
     "CodeMiner backend error: ",
@@ -50,17 +48,22 @@ format_backend_error.codeminer_arg_validation_error <- function(e, res) {
   res$status <- 422
 
   list(
-    error = "CodeMiner Backend Error",
-    message = as.list(msg) # preserves "x", "i", "" names
+    error_type = class(e)[1],
+    # Extract original cli message specification vector - preserves "x", "i", "" names
+    error_message = as.list(e$cli_error_message)
   )
 }
 
 codeminer_handle <- function(expr, res) {
+  # setup
   warn_env <- new.env(parent = emptyenv())
   warn_env$warnings <- character()
   warn_env$messages <- character()
 
-  result <- tryCatch(
+  error_response_class <- "error_response"
+
+  # capture warnings and messages
+  response_body <- tryCatch(
     withCallingHandlers(
       expr,
       warning = function(w) {
@@ -71,22 +74,34 @@ codeminer_handle <- function(expr, res) {
       }
     ),
     error = function(e) {
-      e$warnings <- warn_env$warnings
-      e$messages <- warn_env$messages
-      return(format_backend_error(e, res))
+      # format errors and set `error_response_class`
+      error_response <- format_backend_error(e, res)
+      class(error_response) <- error_response_class
+      return(error_response)
     }
   )
 
-  list(
-    result = result,
-    warnings = if (length(warn_env$warnings)) warn_env$warnings else NULL,
-    messages = if (length(warn_env$messages)) warn_env$messages else NULL
+  # determine whether request was successful or raised an error
+  result_or_error_name <- ifelse(
+    inherits(response_body, error_response_class),
+    "error",
+    "result"
+  )
+
+  # response body will be a list with items result/error, warnings, messages
+  c(
+    stats::setNames(list(unclass(response_body)), result_or_error_name),
+    list(
+      warnings = if (length(warn_env$warnings)) warn_env$warnings else NULL,
+      messages = if (length(warn_env$messages)) warn_env$messages else NULL
+    )
   )
 }
 
 codeminer_handler_factory <- function(f) {
   force(f) # ensures function is captured correctly
 
+  # req is unused; required by plumber
   function(req, res, ...) {
     codeminer_handle(f(...), res)
   }

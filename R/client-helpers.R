@@ -58,9 +58,7 @@ api_request <- function(
       )
 
       # Extract structured fields if present
-      msg_list <- backend$result$message %||%
-        backend$error %||%
-        conditionMessage(e)
+      msg_list <- backend$error$error_message %||% conditionMessage(e)
       warn_list <- backend$warnings %||% NULL
       msg_msgs <- backend$messages %||% NULL
 
@@ -79,6 +77,7 @@ api_request <- function(
           unlist(msg_list, use.names = TRUE),
           "i" = paste0("API URL: ", full_url)
         ),
+        class = backend$error$error_type[[1]],
         call = call
       )
     },

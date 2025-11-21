@@ -48,10 +48,13 @@ add_test_endpoint <- function(pr) {
     path = "/TEST",
     handler = codeminer_handler_factory(
       function() {
+        cli::cli_inform("Test message")
+        cli::cli_warn("Test warning")
+
         error_message <- c(x = "error", i = "info")
         cli::cli_abort(
           "error",
-          class = "codeminer_arg_validation_error",
+          class = "codeminer_error",
           cli_error_message = error_message
         )
       }

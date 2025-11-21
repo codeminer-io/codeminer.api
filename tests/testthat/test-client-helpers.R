@@ -62,13 +62,7 @@ test_that("api_request parses JSON to tibble by default", {
     req_perform = function(req) {
       # Create mock response with JSON body
       structure(
-        list(
-          status_code = 200,
-          headers = list(`content-type` = "application/json"),
-          body = charToRaw(
-            '[{"code": "J45", "description": "Asthma", "code_type": "icd10"}]'
-          )
-        ),
+        list(),
         class = "httr2_response"
       )
     },
@@ -78,11 +72,13 @@ test_that("api_request parses JSON to tibble by default", {
   # Also mock resp_body_json
   local_mocked_bindings(
     resp_body_json = function(resp, simplifyVector = FALSE) {
-      data.frame(
-        code = "J45",
-        description = "Asthma",
-        code_type = "icd10",
-        stringsAsFactors = FALSE
+      list(
+        result = data.frame(
+          code = "J45",
+          description = "Asthma",
+          code_type = "icd10",
+          stringsAsFactors = FALSE
+        )
       )
     },
     .package = "httr2"
