@@ -46,20 +46,16 @@ add_test_endpoint <- function(pr) {
   pr$handle(
     method = "GET",
     path = "/TEST",
-    handler = function(req, res, codes, code_type) {
-      tryCatch(
-        {
-          error_message <- c(x = "error", i = "info")
-          cli::cli_abort(
-            "error",
-            class = "codeminer_arg_validation_error",
-            cli_error_message = error_message
-          )
-        },
-        codeminer_arg_validation_error = function(e)
-          format_backend_error(e, res)
-      )
-    }
+    handler = codeminer_handler_factory(
+      function() {
+        error_message <- c(x = "error", i = "info")
+        cli::cli_abort(
+          "error",
+          class = "codeminer_arg_validation_error",
+          cli_error_message = error_message
+        )
+      }
+    ),
   )
   pr
 }

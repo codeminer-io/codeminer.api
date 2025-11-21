@@ -33,12 +33,11 @@ add_description_endpoint <- function(pr) {
   pr$handle(
     method = "GET",
     path = "/DESCRIPTION",
-    handler = function(req, res, pattern, code_type) {
-      tryCatch(
-        codeminer::DESCRIPTION(pattern = pattern, code_type = code_type),
-        error = function(e) format_backend_error(e, res)
-      )
-    }
+    handler = codeminer_handler_factory(
+      function(pattern, code_type) {
+        codeminer::DESCRIPTION(pattern = pattern, code_type = code_type)
+      }
+    )
   )
   pr
 }
@@ -55,12 +54,11 @@ add_codes_endpoint <- function(pr) {
   pr$handle(
     method = "GET",
     path = "/CODES",
-    handler = function(req, res, codes, code_type) {
-      tryCatch(
-        codeminer::CODES(codes = codes, code_type = code_type),
-        error = function(e) format_backend_error(e, res)
-      )
-    }
+    handler = codeminer_handler_factory(
+      function(codes, code_type) {
+        codeminer::CODES(codes = codes, code_type = code_type)
+      }
+    )
   )
   pr
 }

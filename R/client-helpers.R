@@ -48,51 +48,51 @@ api_request <- function(
         httr2::req_url_query(!!!query_params, .multi = "explode") |>
         httr2::req_perform()
     },
-    httr2_http_500 = function(e) {
-      # Extract backend error message from response body
-      backend_error <- tryCatch(
-        {
-          body <- httr2::resp_body_json(e$resp)
-          body$message %||% conditionMessage(e)
-        },
-        error = function(e2) conditionMessage(e)
+
+    # ---- HANDLE ALL HTTP ERROR CODES HERE (400–599) ----
+    httr2_http = function(e) {
+      # Try to read structured JSON body from plumber
+      backend <- tryCatch(
+        httr2::resp_body_json(e$resp),
+        error = function(e2) list(message = conditionMessage(e))
       )
 
+      # Extract structured fields if present
+      msg_list <- backend$result$message %||%
+        backend$error %||%
+        conditionMessage(e)
+      warn_list <- backend$warnings %||% NULL
+      msg_msgs <- backend$messages %||% NULL
+
+      # Replay warnings/messages locally (optional)
+      if (length(warn_list)) {
+        for (w in warn_list) warning(w, call. = FALSE)
+      }
+      if (length(msg_msgs)) {
+        for (m in msg_msgs) message(m)
+      }
+
+      # Raise a structured CLI error
       cli::cli_abort(
         c(
-          x = "Backend error from CodeMiner API: ",
-          unlist(backend_error, use.names = TRUE),
-          paste0("\nAPI URL: ", url)
+          "x" = "Backend error from CodeMiner API:",
+          unlist(msg_list, use.names = TRUE),
+          "i" = paste0("API URL: ", full_url)
         ),
         call = call
       )
     },
-    httr2_http_422 = function(e) {
-      # Extract backend error message from response body
-      backend_error <- tryCatch(
-        {
-          body <- httr2::resp_body_json(e$resp)
-          body$message %||% conditionMessage(e)
-        },
-        error = function(e2) conditionMessage(e)
-      )
 
-      cli::cli_abort(
-        c(
-          unlist(backend_error, use.names = TRUE)
-        ),
-        call = call
-      )
-    },
+    # ---- NON-HTTP ERRORS (timeouts, DNS failures, etc.) ----
     httr2_error = function(e) {
-      # Catch all other httr2 errors
-      stop(
-        "Failed to connect to CodeMiner API: ",
-        conditionMessage(e),
-        "\nCheck connection with check_api_connection()",
-        "\nAPI URL: ",
-        url,
-        call. = FALSE
+      cli::cli_abort(
+        c(
+          "x" = "Failed to connect to CodeMiner API",
+          "i" = conditionMessage(e),
+          "i" = "Check with check_api_connection()",
+          "i" = paste0("API URL: ", full_url)
+        ),
+        call = call
       )
     }
   )
@@ -101,9 +101,18 @@ api_request <- function(
     return(response)
   }
 
-  # Parse response to tibble
-  httr2::resp_body_json(response, simplifyVector = TRUE) |>
-    tibble::as_tibble()
+  # ---- SUCCESS ----
+  parsed <- httr2::resp_body_json(response, simplifyVector = TRUE)
+
+  # Replay warnings/messages in client
+  if (length(parsed$warnings)) {
+    for (w in parsed$warnings) warning(w, call. = FALSE)
+  }
+  if (length(parsed$messages)) {
+    for (m in parsed$messages) message(m)
+  }
+
+  tibble::as_tibble(parsed$result)
 }
 
 #' Check if CodeMiner API is available
