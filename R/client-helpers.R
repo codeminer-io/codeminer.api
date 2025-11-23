@@ -52,32 +52,25 @@ api_request <- function(
     # ---- HANDLE ALL HTTP ERROR CODES HERE (400–599) ----
     httr2_http = function(e) {
       # Try to read structured JSON body from plumber
-      backend <- tryCatch(
+      parsed <- tryCatch(
         httr2::resp_body_json(e$resp),
         error = function(e2) list(message = conditionMessage(e))
       )
 
       # Extract structured fields if present
-      msg_list <- backend$error$error_message %||% conditionMessage(e)
-      warn_list <- backend$warnings %||% NULL
-      msg_msgs <- backend$messages %||% NULL
+      error_list <- parsed$error$error_message %||% conditionMessage(e)
 
-      # Replay warnings/messages locally (optional)
-      if (length(warn_list)) {
-        for (w in warn_list) warning(w, call. = FALSE)
-      }
-      if (length(msg_msgs)) {
-        for (m in msg_msgs) message(m)
-      }
+      # Replay warnings/messages locally
+      print_captured_warnings_and_messages(parsed)
 
       # Raise a structured CLI error
       cli::cli_abort(
         c(
           "x" = "Backend error from CodeMiner API:",
-          unlist(msg_list, use.names = TRUE),
+          convert_captured_message_to_cli_message_vector(error_list),
           "i" = paste0("API URL: ", full_url)
         ),
-        class = backend$error$error_type[[1]],
+        class = parsed$error$error_type[[1]],
         call = call
       )
     },
@@ -104,12 +97,7 @@ api_request <- function(
   parsed <- httr2::resp_body_json(response, simplifyVector = TRUE)
 
   # Replay warnings/messages in client
-  if (length(parsed$warnings)) {
-    for (w in parsed$warnings) warning(w, call. = FALSE)
-  }
-  if (length(parsed$messages)) {
-    for (m in parsed$messages) message(m)
-  }
+  print_captured_warnings_and_messages(parsed)
 
   tibble::as_tibble(parsed$result)
 }
@@ -160,4 +148,31 @@ check_api_connection <- function(
       invisible(FALSE)
     }
   )
+}
+
+print_captured_warnings_and_messages <- function(resp) {
+  # discard first item in both cases - this just records N warnings/messages
+  if (length(resp$warnings)) {
+    resp$warnings <- resp$warning[-1] |>
+      purrr::map(convert_captured_message_to_cli_message_vector)
+
+    for (w in resp$warnings) cli::cli_warn(message = w)
+  }
+  if (length(resp$messages)) {
+    resp$messages <-
+      resp$messages[-1] |>
+      purrr::map(convert_captured_message_to_cli_message_vector)
+
+    for (m in resp$messages) cli::cli_inform(message = m)
+  }
+}
+
+convert_captured_message_to_cli_message_vector <- function(captured_message) {
+  if (is.null(names(captured_message))) {
+    return(captured_message)
+  } else {
+    captured_message |>
+      purrr::set_names(\(nm) substr(nm, 1, 1)) |>
+      unlist(use.names = TRUE)
+  }
 }

@@ -30,6 +30,7 @@ Imports:
     codeminer,
     httr2,
     plumber,
+    purrr,
     rlang,
     stats,
     tibble,

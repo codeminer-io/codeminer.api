@@ -52,3 +52,26 @@ CODES <- function(codes, code_type, .return_raw = FALSE) {
     .return_raw = .return_raw
   )
 }
+
+#' @returns error
+#' @noRd
+#' @export
+test <- function(
+  message_class = "codeminer_message",
+  warning_class = "codeminer_warning",
+  error_class = "codeminer_error",
+  error = TRUE
+) {
+  query_params <- list(
+    message_class = message_class,
+    warning_class = warning_class,
+    error_class = error_class,
+    error = error
+  )
+
+  api_request(
+    endpoint = "/TEST",
+    query_params = query_params,
+    .return_raw = FALSE
+  )
+}
