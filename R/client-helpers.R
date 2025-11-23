@@ -66,9 +66,7 @@ api_request <- function(
       # Raise a structured CLI error
       cli::cli_abort(
         c(
-          "x" = "Backend error from CodeMiner API:",
-          convert_captured_message_to_cli_message_vector(error_list),
-          "i" = paste0("API URL: ", full_url)
+          convert_captured_message_to_cli_message_vector(error_list)
         ),
         class = parsed$error$error_type[[1]],
         call = call
