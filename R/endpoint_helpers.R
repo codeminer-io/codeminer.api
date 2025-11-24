@@ -1,19 +1,60 @@
-#' Format backend error as API response
+#' Format backend errors for API responses
 #'
-#' Captures error messages raised by server functions (e.g.
-#' [codeminer::CODES()]) and also updates http status code.
+#' Internal generic used by `codeminer_handle()` to convert backend errors
+#' raised inside plumber endpoints into structured JSON responses. This
+#' mechanism determines the HTTP status code, the JSON structure returned to
+#' clients, and whether anything is logged to the server console.
 #'
-#' @param e Error object from tryCatch
-#' @param res Plumber response object
-#' @return List to be serialized as JSON error response
+#' The API distinguishes between:
+#'
+#' - **Unexpected backend errors** (e.g., internal bugs, database issues)
+#'   -> handled by `format_backend_error.default()`
+#'
+#' - **Expected user-facing CodeMiner errors** raised via [codeminer::codeminer_abort()]
+#'   -> handled by `format_backend_error.codeminer_error()`
+#'
+#' Warnings and messages are handled separately by `codeminer_handle()`, but
+#' only if they have class `codeminer_warning` or `codeminer_message`. Base R
+#' warnings/messages are not captured and never exposed to the client.
+#'
+#' @param e A condition object passed from the API handler.
+#' @param res A plumber response object whose `status` field will be updated.
+#'
+#' @return A named list with items `error_type` and `error_message`, that
+#'   plumber will serialise to JSON. The latter should be a named list of one or
+#'   more error messages where names can be used as bullet points with
+#'   [cli::cli_abort()] (see [cli::cli_bullets()] for valid bullet types). If no
+#'   bullet point is needed, then use '-' (ignored by [cli::cli_abort()]).
+#'
 #' @keywords internal
 #' @noRd
 format_backend_error <- function(e, res) {
   UseMethod("format_backend_error")
 }
 
-
+#' Default formatter for unexpected backend errors
+#'
+#' Handles non-CodeMiner errors that escape from endpoint execution. These
+#' represent internal/unexpected failures (e.g. coding errors, missing fields,
+#' database corruption) and are *not* intended for end-users.
+#'
+#' Behaviour:
+#' - Writes a warning to server stderr using [warning()], ensuring the issue
+#' appears in the API logs.
+#' - Sets HTTP status 500.
+#' - Returns a generic error payload to the client. Only the high-level
+#' condition message is exposed.
+#' - Base R warnings/messages are not captured by the API handler and will not
+#' be replayed to the client.
+#'
+#' @inheritParams format_backend_error
+#'
+#' @return A list suitable for JSON serialisation, containing:
+#'   - `error_type` (always "Backend Error")
+#'   - `error_message` (a named list containing the plain error message with name "x")
+#'
 #' @keywords internal
+#' @noRd
 format_backend_error.default <- function(e, res) {
   warning(
     "Backend error: ",
@@ -29,22 +70,31 @@ format_backend_error.default <- function(e, res) {
   )
 }
 
+#' Formatter for CodeMiner user-facing errors
+#'
+#' Handles errors raised via `codeminer_abort()`, which represent expected,
+#' user-facing validation failures (e.g. invalid arguments, malformed inputs).
+#'
+#' Behaviour:
+#' - **Does not log** a server warning (avoids log noise for anticipated errors).
+#' - Sets HTTP status 422.
+#' - Extracts the structured CLI message vector stored in the condition's
+#'   `cli_message` attribute. This allows the client wrappers to faithfully
+#'   recreate the exact bullet list produced by `[cli_abort()]`.
+#'
+#' Only errors with class `codeminer_error` use this method. All other errors
+#' fall back to `format_backend_error.default()`.
+#'
+#' @inheritParams format_backend_error
+#'
+#' @return A list suitable for JSON serialisation, containing:
+#'   - `error_type` – the most specific CodeMiner error class (e.g.,
+#'     `"codeminer_arg_validation_error"`)
+#'   - `error_message` – the stored CLI message vector (as a named list)
+#'
 #' @keywords internal
+#' @noRd
 format_backend_error.codeminer_error <- function(e, res) {
-  warning(
-    "Backend error: ",
-    conditionMessage(e),
-    immediate. = TRUE,
-    call. = FALSE
-  )
-
-  warning(
-    "CodeMiner backend error: ",
-    conditionMessage(e),
-    immediate. = TRUE,
-    call. = FALSE
-  )
-
   res$status <- 422
 
   list(

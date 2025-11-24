@@ -65,3 +65,64 @@ test_that("set_missing_names leaves fully named vector unchanged", {
   x <- c(a = "foo", b = "bar")
   expect_identical(set_missing_names(x), x)
 })
+
+test_that("codeminer_handle captures codeminer_message conditions", {
+  expr <- function() {
+    cli::cli_inform(
+      c("i" = "Hello", "i" = "World"),
+      class = "codeminer_message",
+      cli_message = c("i" = "Hello", "i" = "World")
+    )
+    "OK"
+  }
+
+  res <- new.env()
+  output <- codeminer_handle(expr(), res)
+
+  expect_equal(output$result, "OK")
+  expect_equal(
+    output$messages[[2]], # skip N-messages entry
+    list("i" = "Hello", "i" = "World")
+  )
+})
+
+test_that("codeminer_handle captures codeminer_warning conditions", {
+  expr <- function() {
+    cli::cli_warn(
+      c("!" = "W1", "!" = "W2"),
+      class = "codeminer_warning",
+      cli_message = c("!" = "W1", "!" = "W2")
+    )
+    "OK"
+  }
+
+  res <- new.env()
+  output <- codeminer_handle(expr(), res)
+
+  expect_equal(output$result, "OK")
+  expect_equal(
+    output$warnings[[2]],
+    list("!" = "W1", "!" = "W2")
+  )
+})
+
+test_that("codeminer_handle captures codeminer_error", {
+  expr <- function() {
+    cli::cli_abort(
+      c("x" = "Bad!", ">" = "Oops"),
+      class = "codeminer_error",
+      cli_message = c("x" = "Bad!", ">" = "Oops")
+    )
+  }
+
+  res <- new.env()
+  output <- codeminer_handle(expr(), res)
+
+  expect_null(output$result)
+  expect_equal(output$error$error_type, "codeminer_error")
+
+  expect_equal(
+    output$error$error_message,
+    list("x" = "Bad!", ">" = "Oops")
+  )
+})
