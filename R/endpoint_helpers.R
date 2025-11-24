@@ -96,12 +96,10 @@ codeminer_handle <- function(expr, res) {
 
   error_response_class <- "error_response"
 
-  # capture warnings and messages
+  # capture warnings and messages (codeminer_* class only)
   response_body <- tryCatch(
     withCallingHandlers(
       expr,
-      warning = capture_cod("warnings", warn_env),
-      message = capture_cod("messages", warn_env),
       codeminer_warning = capture_cod("warnings", warn_env),
       codeminer_message = capture_cod("messages", warn_env)
     ),
