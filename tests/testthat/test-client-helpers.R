@@ -175,3 +175,15 @@ test_that("check_api_connection returns FALSE for failed connection", {
   result <- check_api_connection("http://nonexistent.local:9999")
   expect_false(result)
 })
+
+test_that("convert_captured_message_to_cli_message_vector recreates cli vector", {
+  # JSON cannot have duplicate keys, so names for `list(i = "x", i = "y")` get
+  # adjusted during serialisation to JSON
+  captured <- list("i.1" = "Hello", "i.2" = "World")
+
+  # convert_captured_message_to_cli_message_vector() takes the first letter of
+  # each name
+  out <- convert_captured_message_to_cli_message_vector(captured)
+
+  expect_equal(out, c("i" = "Hello", "i" = "World"))
+})
