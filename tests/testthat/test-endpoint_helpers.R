@@ -1,4 +1,4 @@
-test_that("capture_cod() extracts messages correctly", {
+test_that("capture_cm_condition() extracts messages correctly", {
   warn_env <- new.env(parent = emptyenv())
   warn_env$warnings <- character()
 
@@ -8,12 +8,12 @@ test_that("capture_cod() extracts messages correctly", {
     class = c("codeminer_warning", "warning", "condition")
   )
 
-  capture_cod("warnings", warn_env)(cnd)
+  capture_cm_condition("warnings", warn_env)(cnd)
 
   expect_identical(warn_env$warnings, list(list("-" = "interpolated")))
 })
 
-test_that("capture_cod() muffles warnings when restart is available", {
+test_that("capture_cm_condition() muffles warnings when restart is available", {
   warn_env <- new.env(parent = emptyenv())
   warn_env$warnings <- character()
 
@@ -25,7 +25,7 @@ test_that("capture_cod() muffles warnings when restart is available", {
       warning("base test warning")
       triggered <<- TRUE
     },
-    warning = capture_cod("warnings", warn_env),
+    warning = capture_cm_condition("warnings", warn_env),
     muffleWarning = function() {
     }
   )

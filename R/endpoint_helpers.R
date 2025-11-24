@@ -56,13 +56,13 @@ format_backend_error.codeminer_error <- function(e, res) {
 
 #' Capture a condition's text for warnings/messages
 #'
-#' Internal helper that extracts either the CLI-formatted message
-#' (`cli_message`) or a base condition message. Used by the API
-#' handler to collect warnings and messages uniformly.
+#' Internal helper that extracts a codeminer CLI-formatted message
+#' (`cli_message`) condition message. Used by the API
+#' handler to collect codeminer warnings and messages uniformly.
 #'
 #' @keywords internal
 #' @noRd
-capture_cod <- function(target, warn_env) {
+capture_cm_condition <- function(target, warn_env) {
   function(cnd) {
     msg <- if (!is.null(cnd$cli_message)) {
       cnd$cli_message |>
@@ -100,8 +100,8 @@ codeminer_handle <- function(expr, res) {
   response_body <- tryCatch(
     withCallingHandlers(
       expr,
-      codeminer_warning = capture_cod("warnings", warn_env),
-      codeminer_message = capture_cod("messages", warn_env)
+      codeminer_warning = capture_cm_condition("warnings", warn_env),
+      codeminer_message = capture_cm_condition("messages", warn_env)
     ),
     error = function(e) {
       # format errors and set `error_response_class`
