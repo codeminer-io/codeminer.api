@@ -23,12 +23,17 @@ Suggests:
     callr,
     withr,
     knitr,
-    rmarkdown,
-    httr2
+    rmarkdown
 Config/testthat/edition: 3
 Imports: 
     cli,
     codeminer,
-    plumber
+    httr2,
+    plumber,
+    purrr,
+    rlang,
+    stats,
+    tibble,
+    utils
 Remotes: 
     github::codeminer-io/codeminer

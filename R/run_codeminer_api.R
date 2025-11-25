@@ -57,7 +57,13 @@ validate_codeminer_db_path <- function(use_cli = TRUE) {
 #' @return Does not return in normal operation (blocks until server stops)
 #' @keywords internal
 #' @export
-run_codeminer_api_foreground <- function(host = "127.0.0.1", port = 8000, docs = TRUE, quiet = FALSE, ...) {
+run_codeminer_api_foreground <- function(
+  host = "127.0.0.1",
+  port = 8000,
+  docs = TRUE,
+  quiet = FALSE,
+  ...
+) {
   # Validate CODEMINER_DB_PATH
   validate_codeminer_db_path()
 
@@ -139,7 +145,7 @@ run_codeminer_api <- function(
   if (background) {
     # Validate early before spawning background process
     validate_codeminer_db_path()
-    
+
     # Run in background process by calling the foreground function
     bg <- callr::r_bg(
       func = function(host, port, docs, quiet, ...) {
@@ -165,10 +171,10 @@ run_codeminer_api <- function(
       ),
       supervise = TRUE
     )
-    
+
     # Give process a moment to start and check if it's alive
     Sys.sleep(0.5)
-    
+
     if (!bg$is_alive()) {
       # Process died, show error
       err_output <- bg$read_all_error()

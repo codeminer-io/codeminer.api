@@ -1,8 +1,5 @@
 test_that("API endpoints respond correctly in background mode", {
   skip_on_cran()
-  skip_if_not_installed("codeminer")
-  skip_if_not_installed("callr")
-  skip_if_not_installed("httr2")
   skip_if_offline()
 
   # Database is set up by tests/testthat/setup.R using codeminer::create_dummy_database()
@@ -68,9 +65,6 @@ test_that("API endpoints respond correctly in background mode", {
 
 test_that("API serves Swagger documentation by default", {
   skip_on_cran()
-  skip_if_not_installed("codeminer")
-  skip_if_not_installed("callr")
-  skip_if_not_installed("httr2")
   skip_if_offline()
 
   # Database is set up by tests/testthat/setup.R using codeminer::create_dummy_database()
@@ -111,9 +105,6 @@ test_that("API serves Swagger documentation by default", {
 
 test_that("API can disable Swagger documentation", {
   skip_on_cran()
-  skip_if_not_installed("codeminer")
-  skip_if_not_installed("callr")
-  skip_if_not_installed("httr2")
   skip_if_offline()
 
   # Database is set up by tests/testthat/setup.R using codeminer::create_dummy_database()

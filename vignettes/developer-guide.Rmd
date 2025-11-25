@@ -14,73 +14,234 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Adding New Endpoints
+# Overview
 
-To add a new endpoint to the API:
+The `codeminer.api` package has two primary responsibilities:
 
-### 1. Add an endpoint helper function
+1. To expose functions from the `codeminer` package as REST API endpoints using `plumber`.
+2. To provide client wrapper functions (`CODES()`, `DESCRIPTION()`, etc.) that behave identically to the original `codeminer` functions — including their outputs, user-facing messages, warnings, and errors.
 
-Add your new endpoint function to `R/endpoints.R`:
+The client wrappers are designed to be drop-in replacements for the local `codeminer` functions, except that computation is performed by the API.
 
-```r
-# R/endpoints.R
+# API Architecture
 
-#' Add my endpoint to plumber router
-#'
-#' @param pr A plumber router object
-#' @return The modified plumber router
-#' @keywords internal
+The API router is constructed by `create_codeminer_api()`, which sequentially adds endpoint helper functions. Each endpoint:
+
+- is defined in `R/endpoints.R`
+- wraps a backend `codeminer::*` function
+- uses a unified handler factory (`codeminer_handler_factory()`) to ensure consistent condition-capture, error formatting, and JSON structure.
+
+The overall structure:
+
+```
+create_codeminer_api()
+ ├── add_health_endpoint()
+ ├── add_description_endpoint()
+ ├── add_codes_endpoint()
+```
+
+# Adding New Endpoints
+
+To add a new endpoint:
+
+## 1. Create endpoint helper
+
+Add a new function to `R/endpoints.R`:
+
+```
 add_myendpoint_endpoint <- function(pr) {
   pr$handle(
     "GET",
     "/myendpoint",
-    function(param1, param2) {
-      # Your endpoint logic here
-      codeminer::my_function(param1, param2)
-    }
+    handler = codeminer_handler_factory(
+      function(arg1, arg2) {
+        codeminer::my_function(arg1, arg2)
+      }
+    )
   )
   pr
 }
 ```
 
-### 2. Register in `create_codeminer_api()`
+## 2. Register the endpoint
 
-Add your endpoint to the router composition in `R/create_codeminer_api.R`:
+Add your helper to `create_codeminer_api()`:
 
-```r
+```
 create_codeminer_api <- function() {
   pr <- plumber::pr()
-  
+
+  pr <- add_health_endpoint(pr)
   pr <- add_description_endpoint(pr)
   pr <- add_codes_endpoint(pr)
-  pr <- add_myendpoint_endpoint(pr)  # Add your endpoint here
   
+  # new endpoint
+  pr <- add_myendpoint_endpoint(pr)
+
   pr
 }
 ```
 
-### 3. Write tests
+## 3. Add a unit test
 
-Add a test to `tests/testthat/test-endpoints.R`:
+Use the standard helper:
 
-```r
+```
 test_endpoint_addition(
   add_myendpoint_endpoint,
-  "add_myendpoint_endpoint",
+  "myendpoint",
   "/myendpoint"
 )
 ```
 
-The `test_endpoint_addition()` helper (defined in `tests/testthat/helper-endpoint-tests.R`) verifies that:
+This checks that:
 
-- The endpoint function exists and is callable
-- The specified path is added to the router
-- The endpoint appears in the API paths list
+- the endpoint function exists and can be called
+- the path is added to the router
+- the router exposes the expected route
 
-## Background mode when developing
+# Condition Handling and Design Rationale
 
-When you run the API in background mode with `run_codeminer_api(background = TRUE)`
-or start it via `callr::r_bg()` the server runs in a fresh R process which loads the
-installed package from your R library. That means changes you've made to the
-source files in the package directory will not be picked up by the background
-process until you reinstall the package.
+`codeminer` backend functions use custom wrappers around `cli_inform()`, `cli_warn()`, and `cli_abort()` to create structured conditions with custom classes such as:
+
+- `codeminer_message`
+- `codeminer_warning`
+- `codeminer_error`
+
+These wrappers embed:
+
+- original CLI message vectors (e.g., `c("i" = "info", "!" = "warn")`)
+- the primary class for dispatch
+- optional subclasses for more specific error types
+
+The original message vector is stored in a `cli_message` attribute.
+
+The API must:
+
+1. Capture these structured conditions reliably;
+2. Serialise them to JSON in a deterministic way;
+3. Allow the client wrapper to reconstruct the original CLI structure exactly.
+
+# How Backend Conditions Are Captured
+
+All API endpoint calls are wrapped using `codeminer_handler_factory()`, which delegates to `codeminer_handle()`.
+
+`codeminer_handle()`:
+
+- runs the backend expression under `withCallingHandlers()`;
+- intercepts:
+  - `codeminer_warning`
+  - `codeminer_message`
+- extracts the message text or the `cli_message` attribute via `capture_cm_condition()`;
+- stores conditions in a nested list structure;
+
+Example pipeline:
+
+```r
+codeminer_handle(
+  withCallingHandlers(
+    backend_expression,
+    codeminer_warning = capture_cm_condition("warnings", warn_env),
+    codeminer_message = capture_cm_condition("messages", warn_env)
+  ),
+  res
+)
+```
+
+Warnings and messages are captured into:
+
+```r
+warnings = list(
+  "Warnings: N",
+  list("!", "text A"),
+  list("i", "text B"),
+  ...
+)
+```
+
+
+A similar structure is built for `messages`.
+
+Errors are formatted by S3 method dispatch via `format_backend_error()`:
+
+- default R errors -> 500 status
+- codeminer errors -> 422 status, preserving `cli_message`
+
+# JSON Output Schema
+
+Every successful API response returns:
+
+```json
+{
+  "result": <data structure returned by codeminer>,
+  "warnings": [ list entries ],
+  "messages": [ list entries ]
+}
+```
+
+
+Every error response returns:
+
+```
+{
+  "error": {
+    "error_type": "<class>",
+    "error_message": { named cli message vector }
+},
+  "warnings": [...],
+  "messages": [...]
+}
+```
+
+This makes the schema consistent regardless of success, warning, or error.
+
+# Client-Side Reconstruction of Messages and Errors
+
+Client wrapper functions:
+
+1. Make API requests using `api_request()`;
+2. Parse JSON into R structures using `httr2::resp_body_json()`;
+3. Reconstruct CLI messages and warnings via:
+
+```{r eval=FALSE}
+print_captured_warnings_and_messages(parsed)
+```
+
+4. Print them using `cli_inform()` / `cli_warn()` to ensure identical output.
+
+Errors are replayed using:
+
+```{r eval=FALSE}
+cli::cli_abort(
+  convert_captured_message_to_cli_message_vector(error_list),
+  class = parsed$error$error_type[[1]],
+  call = call
+)
+```
+
+Thus, from the R user’s perspective, calling:
+
+```r
+codeminer.api::CODES(...)
+```
+
+feels identical to using the local:
+
+```r
+codeminer::CODES(...)
+```
+
+
+# Background Mode During Development
+
+Running the API in background mode (`run_codeminer_api(background = TRUE)`) launches the server in a fresh R session.
+
+Important implications:
+
+- Any local changes to the package source require reinstalling before restarting the background API.
+- Environment variables (especially `CODEMINER_DB_PATH`) are inherited from the parent process.
+
+# TODO / Future Enhancements
+
+- **Switch all endpoints from GET -> POST**  
+  Allows larger payloads (e.g. long code lists), avoids encoding issues with regex in query strings.
