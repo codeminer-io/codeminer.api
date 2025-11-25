@@ -187,10 +187,24 @@ codeminer_handle <- function(expr, res) {
 codeminer_handler_factory <- function(f) {
   force(f) # ensures function is captured correctly
 
-  # req is unused; required by plumber
-  function(req, res, ...) {
-    codeminer_handle(f(...), res)
+  # Get the original function's formals (parameter list)
+  original_formals <- rlang::fn_fmls(f)
+
+  # Create wrapper that preserves signature for Swagger
+  wrapper <- function(req, res) {
+    # Extract args that match f's parameters from the query/body
+    args <- req$args[rlang::fn_fmls_names(f)]
+    codeminer_handle(rlang::exec(f, !!!args), res)
   }
+
+  # Set the wrapper's formals to match the original function
+  # This is what Swagger will inspect
+  rlang::fn_fmls(wrapper) <- c(
+    rlang::pairlist2(req = , res = ),
+    original_formals
+  )
+
+  wrapper
 }
 
 #' Ensure all elements of a character vector have names

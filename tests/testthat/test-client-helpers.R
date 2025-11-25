@@ -187,3 +187,17 @@ test_that("convert_captured_message_to_cli_message_vector recreates cli vector",
 
   expect_equal(out, c("i" = "Hello", "i" = "World"))
 })
+
+test_that("client replays warnings and messages via CLI", {
+  messages <- list("Messages: 1", list("i" = "one"))
+  warnings <- list("Warnings: 1", list("!" = "two"))
+
+  withr::local_options(cli.default_handler = cli::cli_sitrep)
+
+  expect_snapshot(
+    print_captured_warnings_and_messages(list(
+      messages = messages,
+      warnings = warnings
+    ))
+  )
+})

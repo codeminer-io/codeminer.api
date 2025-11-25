@@ -53,10 +53,13 @@ CODES <- function(codes, code_type, .return_raw = FALSE) {
   )
 }
 
-#' @returns error
+#' Internal client wrapper for condition testing endpoint
+#'
+#' Not exported. Used only in unit tests.
+#'
+#' @keywords internal
 #' @noRd
-#' @export
-test <- function(
+test_conditions <- function(
   message_class = "codeminer_message",
   warning_class = "codeminer_warning",
   error_class = "codeminer_error",
@@ -70,7 +73,7 @@ test <- function(
   )
 
   api_request(
-    endpoint = "/TEST",
+    endpoint = "/TEST_CONDITIONS",
     query_params = query_params,
     .return_raw = FALSE
   )
