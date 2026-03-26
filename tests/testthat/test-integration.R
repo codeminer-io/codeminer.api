@@ -35,27 +35,82 @@ test_that("API endpoints respond correctly in background mode", {
 
   expect_true(bg$is_alive())
 
-  # Test DESCRIPTION endpoint
-  response_desc <- httr2::request("http://127.0.0.1:8888/DESCRIPTION") |>
-    httr2::req_url_query(
+  base_url <- "http://127.0.0.1:8888"
+
+  # Test DESCRIPTION endpoint (POST)
+  response_desc <- httr2::request(paste0(base_url, "/DESCRIPTION")) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
       pattern = "asthma",
-      code_type = "icd10"
-    ) |>
+      type = "ICD-10"
+    )) |>
     httr2::req_perform()
 
   expect_equal(httr2::resp_status(response_desc), 200)
   expect_match(httr2::resp_content_type(response_desc), "application/json")
 
-  # Test CODES endpoint
-  response_codes <- httr2::request("http://127.0.0.1:8888/CODES") |>
-    httr2::req_url_query(
+  # Test CODES endpoint (POST)
+  response_codes <- httr2::request(paste0(base_url, "/CODES")) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
       codes = "J45",
-      code_type = "icd10"
-    ) |>
+      type = "ICD-10"
+    )) |>
     httr2::req_perform()
 
   expect_equal(httr2::resp_status(response_codes), 200)
   expect_match(httr2::resp_content_type(response_codes), "application/json")
+
+  # Test CODES_LIKE endpoint (POST)
+  response_cl <- httr2::request(paste0(base_url, "/CODES_LIKE")) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
+      pattern = "^J45",
+      type = "ICD-10"
+    )) |>
+    httr2::req_perform()
+
+  expect_equal(httr2::resp_status(response_cl), 200)
+
+  # Test CHILDREN endpoint (POST)
+  response_ch <- httr2::request(paste0(base_url, "/CHILDREN")) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
+      codes = "J45",
+      type = "ICD-10"
+    )) |>
+    httr2::req_perform()
+
+  expect_equal(httr2::resp_status(response_ch), 200)
+
+  # Test MAP endpoint (POST)
+  response_map <- httr2::request(paste0(base_url, "/MAP")) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
+      codes = "J45",
+      from = "ICD-10",
+      to = "ICD-9"
+    )) |>
+    httr2::req_error(is_error = \(resp) FALSE) |>
+    httr2::req_perform()
+
+  # MAP may return 200 even with empty results, or 422 if no mapping exists
+  expect_true(httr2::resp_status(response_map) %in% c(200, 422))
+
+  # Test metadata endpoint (GET)
+  response_meta <- httr2::request(paste0(base_url, "/metadata")) |>
+    httr2::req_perform()
+
+  expect_equal(httr2::resp_status(response_meta), 200)
+  meta_body <- httr2::resp_body_json(response_meta, simplifyVector = TRUE)
+  expect_true("result" %in% names(meta_body))
+
+  # Test metadata with type filter
+  response_meta_lookup <- httr2::request(paste0(base_url, "/metadata")) |>
+    httr2::req_url_query(type = "lookup") |>
+    httr2::req_perform()
+
+  expect_equal(httr2::resp_status(response_meta_lookup), 200)
 
   # Clean shutdown
   bg$kill()

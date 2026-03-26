@@ -35,9 +35,20 @@ The overall structure:
 
 ```
 create_codeminer_api()
- ├── add_health_endpoint()
- ├── add_description_endpoint()
- ├── add_codes_endpoint()
+ ├── add_health_endpoint()         # GET
+ ├── add_description_endpoint()    # POST
+ ├── add_codes_endpoint()          # POST
+ ├── add_codes_like_endpoint()     # POST
+ ├── add_children_endpoint()       # POST
+ ├── add_n_children_endpoint()     # POST
+ ├── add_parents_endpoint()        # POST
+ ├── add_n_parents_endpoint()      # POST
+ ├── add_attributes_for_endpoint() # POST
+ ├── add_has_attributes_endpoint() # POST
+ ├── add_relationship_types_from_endpoint()  # POST
+ ├── add_relationship_types_to_endpoint()    # POST
+ ├── add_map_endpoint()            # POST
+ └── add_metadata_endpoint()       # GET
 ```
 
 # Adding New Endpoints
@@ -51,10 +62,10 @@ Add a new function to `R/endpoints.R`:
 ```
 add_myendpoint_endpoint <- function(pr) {
   pr$handle(
-    "GET",
-    "/myendpoint",
+    method = "POST",
+    path = "/myendpoint",
     handler = codeminer_handler_factory(
-      function(arg1, arg2) {
+      function(arg1, arg2 = NULL) {
         codeminer::my_function(arg1, arg2)
       }
     )
@@ -241,7 +252,16 @@ Important implications:
 - Any local changes to the package source require reinstalling before restarting the background API.
 - Environment variables (especially `CODEMINER_DB_PATH`) are inherited from the parent process.
 
-# TODO / Future Enhancements
+# Special handling notes
 
-- **Switch all endpoints from GET -> POST**  
-  Allows larger payloads (e.g. long code lists), avoids encoding issues with regex in query strings.
+- **`depth = Inf`**: JSON has no `Inf` literal. The client sends `"Inf"` as a
+  string; the server converts it back via `as.numeric("Inf")`.
+- **`col_filters`**: Can be `"default"` (string), `NULL` (JSON null), or a
+  named list (JSON object). The server passes through as-is since `codeminer`
+  handles all three.
+- **`relationship_types`**: The client normalises codelists/data frames to a
+  character vector before sending. The server receives a character vector or
+  NULL.
+- **Missing parameters**: The handler factory uses `intersect()` to only pass
+  parameters that were actually sent in the request body. Unsent parameters
+  use the handler's default values.

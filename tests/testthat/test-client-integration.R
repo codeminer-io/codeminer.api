@@ -33,54 +33,162 @@ test_that("Client functions outputs match equivalent codeminer functions", {
   # Set client API URL
   withr::local_options(codeminer.api.url = "http://127.0.0.1:8891")
 
+  # Helper to compare client and direct results as character columns
+  expect_equal_results <- function(client_result, direct_result) {
+    expect_equal(
+      purrr::map_df(client_result, as.character),
+      purrr::map_df(direct_result, as.character)
+    )
+  }
+
   # ---- DESCRIPTION() -----------
 
-  # Compare client and codeminer results
-  pattern <- "asthma"
-  code_type <- "icd10"
-
-  client_result <- DESCRIPTION(pattern = pattern, code_type = code_type) |>
+  client_result <- DESCRIPTION(pattern = "asthma", type = "ICD-10") |>
     suppressMessages()
-  direct_result <- codeminer::DESCRIPTION(
-    pattern = pattern,
-    code_type = code_type
-  ) |>
+  direct_result <- codeminer::DESCRIPTION(pattern = "asthma", type = "ICD-10") |>
     suppressMessages()
 
-  # Results should be tibbles with data
-  expect_equal(
-    purrr::map_df(client_result, as.character),
-    purrr::map_df(direct_result, as.character)
-  )
+  expect_equal_results(client_result, direct_result)
 
   # ---- CODES() -----------
 
-  # Test single code
-  codes <- "J45"
-  code_type <- "icd10"
+  # Single code
+  client_result <- CODES("J45", type = "ICD-10") |>
+    suppressMessages()
+  direct_result <- codeminer::CODES("J45", type = "ICD-10") |>
+    suppressMessages()
 
-  client_result <- CODES(codes = codes, code_type = code_type) |>
+  expect_equal_results(client_result, direct_result)
+
+  # Vector of codes
+  client_result <- CODES("J45", "E11", type = "ICD-10") |>
     suppressMessages()
-  direct_result <- codeminer::CODES(codes = codes, code_type = code_type) |>
+  direct_result <- codeminer::CODES("J45", "E11", type = "ICD-10") |>
     suppressMessages()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- CODES_LIKE() -----------
+
+  client_result <- CODES_LIKE(pattern = "^J45", type = "ICD-10") |>
+    suppressMessages()
+  direct_result <- codeminer::CODES_LIKE(pattern = "^J45", type = "ICD-10") |>
+    suppressMessages()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- CHILDREN() -----------
+
+  client_result <- CHILDREN("J45", type = "ICD-10") |>
+    suppressMessages()
+  direct_result <- codeminer::CHILDREN("J45", type = "ICD-10") |>
+    suppressMessages()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- N_CHILDREN() -----------
+
+  client_result <- N_CHILDREN("J45", depth = 1, type = "ICD-10") |>
+    suppressMessages()
+  direct_result <- codeminer::N_CHILDREN("J45", depth = 1, type = "ICD-10") |>
+    suppressMessages()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- PARENTS() -----------
+
+  client_result <- PARENTS("J450", type = "ICD-10") |>
+    suppressMessages()
+  direct_result <- codeminer::PARENTS("J450", type = "ICD-10") |>
+    suppressMessages()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- N_PARENTS() -----------
+
+  client_result <- N_PARENTS("J450", depth = 1, type = "ICD-10") |>
+    suppressMessages()
+  direct_result <- codeminer::N_PARENTS("J450", depth = 1, type = "ICD-10") |>
+    suppressMessages()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- ATTRIBUTES_FOR() -----------
+
+  client_result <- ATTRIBUTES_FOR("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::ATTRIBUTES_FOR("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- HAS_ATTRIBUTES() -----------
+
+  client_result <- HAS_ATTRIBUTES("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::HAS_ATTRIBUTES("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- RELATIONSHIP_TYPES_FROM() -----------
+
+  client_result <- RELATIONSHIP_TYPES_FROM("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::RELATIONSHIP_TYPES_FROM("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- RELATIONSHIP_TYPES_TO() -----------
+
+  client_result <- RELATIONSHIP_TYPES_TO("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::RELATIONSHIP_TYPES_TO("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- MAP() -----------
+
+  client_result <- MAP("J45", from = "ICD-10", to = "ICD-9") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::MAP("J45", from = "ICD-10", to = "ICD-9") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- get_codeminer_metadata() -----------
+
+  # All metadata
+  client_meta <- get_codeminer_metadata()
+  direct_meta <- codeminer::get_codeminer_metadata()
+
+  expect_equal(names(client_meta), names(direct_meta))
+  for (nm in names(direct_meta)) {
+    expect_equal(
+      purrr::map_df(client_meta[[nm]], as.character),
+      purrr::map_df(direct_meta[[nm]], as.character)
+    )
+  }
+
+  # Single type
+  client_lookup <- get_codeminer_metadata("lookup")
+  direct_lookup <- codeminer::get_codeminer_metadata("lookup")
 
   expect_equal(
-    purrr::map_df(client_result, as.character),
-    purrr::map_df(direct_result, as.character)
-  )
-
-  # Test vector of codes
-  codes <- c("J45", "E11")
-  code_type <- "icd10"
-
-  client_result <- CODES(codes = codes, code_type = code_type) |>
-    suppressMessages()
-  direct_result <- codeminer::CODES(codes = codes, code_type = code_type) |>
-    suppressMessages()
-
-  expect_equal(
-    purrr::map_df(client_result, as.character),
-    purrr::map_df(direct_result, as.character)
+    purrr::map_df(client_lookup, as.character),
+    purrr::map_df(direct_lookup, as.character)
   )
 
   bg$kill()

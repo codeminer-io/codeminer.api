@@ -13,7 +13,6 @@ add_description_endpoint(pr)
 The modified plumber router
 }
 \description{
-Adds a GET endpoint at \verb{/DESCRIPTION} that wraps \code{codeminer::DESCRIPTION()}.
-Accepts \code{pattern} (regex pattern) and \code{code_type} parameters.
+Adds a POST endpoint at \verb{/DESCRIPTION} that wraps \code{codeminer::DESCRIPTION()}.
 }
 \keyword{internal}

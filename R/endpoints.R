@@ -23,19 +23,32 @@ add_health_endpoint <- function(pr) {
 
 #' Add DESCRIPTION endpoint to API router
 #'
-#' Adds a GET endpoint at `/DESCRIPTION` that wraps `codeminer::DESCRIPTION()`.
-#' Accepts `pattern` (regex pattern) and `code_type` parameters.
+#' Adds a POST endpoint at `/DESCRIPTION` that wraps `codeminer::DESCRIPTION()`.
 #'
 #' @param pr A plumber router object
 #' @return The modified plumber router
 #' @keywords internal
 add_description_endpoint <- function(pr) {
   pr$handle(
-    method = "GET",
+    method = "POST",
     path = "/DESCRIPTION",
     handler = codeminer_handler_factory(
-      function(pattern, code_type) {
-        codeminer::DESCRIPTION(pattern = pattern, code_type = code_type)
+      function(
+        pattern,
+        type = NULL,
+        lookup_version = "latest",
+        ignore_case = TRUE,
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::DESCRIPTION(
+          pattern = pattern,
+          type = type,
+          lookup_version = lookup_version,
+          ignore_case = ignore_case,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
       }
     )
   )
@@ -44,19 +57,397 @@ add_description_endpoint <- function(pr) {
 
 #' Add CODES endpoint to API router
 #'
-#' Adds a GET endpoint at `/CODES` that wraps `codeminer::CODES()`.
-#' Accepts `codes` (comma-separated string or vector) and `code_type` parameters.
+#' Adds a POST endpoint at `/CODES` that wraps `codeminer::CODES()`.
 #'
 #' @param pr A plumber router object
 #' @return The modified plumber router
 #' @keywords internal
 add_codes_endpoint <- function(pr) {
   pr$handle(
-    method = "GET",
+    method = "POST",
     path = "/CODES",
     handler = codeminer_handler_factory(
-      function(codes, code_type) {
-        codeminer::CODES(codes = codes, code_type = code_type)
+      function(
+        codes,
+        type = NULL,
+        lookup_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::CODES(
+          codes,
+          type = type,
+          lookup_version = lookup_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add CODES_LIKE endpoint to API router
+#'
+#' Adds a POST endpoint at `/CODES_LIKE` that wraps `codeminer::CODES_LIKE()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_codes_like_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/CODES_LIKE",
+    handler = codeminer_handler_factory(
+      function(
+        pattern,
+        type = NULL,
+        lookup_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::CODES_LIKE(
+          pattern = pattern,
+          type = type,
+          lookup_version = lookup_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add CHILDREN endpoint to API router
+#'
+#' Adds a POST endpoint at `/CHILDREN` that wraps `codeminer::CHILDREN()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_children_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/CHILDREN",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        lookup_version = "latest",
+        relationship_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::CHILDREN(
+          codes,
+          type = type,
+          lookup_version = lookup_version,
+          relationship_version = relationship_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add N_CHILDREN endpoint to API router
+#'
+#' Adds a POST endpoint at `/N_CHILDREN` that wraps `codeminer::N_CHILDREN()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_n_children_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/N_CHILDREN",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        depth = 1,
+        type = NULL,
+        lookup_version = "latest",
+        relationship_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        # JSON has no Inf; client sends "Inf" as string
+        depth <- as.numeric(depth)
+        codeminer::N_CHILDREN(
+          codes,
+          depth = depth,
+          type = type,
+          lookup_version = lookup_version,
+          relationship_version = relationship_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add PARENTS endpoint to API router
+#'
+#' Adds a POST endpoint at `/PARENTS` that wraps `codeminer::PARENTS()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_parents_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/PARENTS",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        lookup_version = "latest",
+        relationship_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::PARENTS(
+          codes,
+          type = type,
+          lookup_version = lookup_version,
+          relationship_version = relationship_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add N_PARENTS endpoint to API router
+#'
+#' Adds a POST endpoint at `/N_PARENTS` that wraps `codeminer::N_PARENTS()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_n_parents_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/N_PARENTS",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        depth = 1,
+        type = NULL,
+        lookup_version = "latest",
+        relationship_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        depth <- as.numeric(depth)
+        codeminer::N_PARENTS(
+          codes,
+          depth = depth,
+          type = type,
+          lookup_version = lookup_version,
+          relationship_version = relationship_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add ATTRIBUTES_FOR endpoint to API router
+#'
+#' Adds a POST endpoint at `/ATTRIBUTES_FOR` that wraps `codeminer::ATTRIBUTES_FOR()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_attributes_for_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/ATTRIBUTES_FOR",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        lookup_version = "latest",
+        relationship_version = "latest",
+        relationship_types = NULL,
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::ATTRIBUTES_FOR(
+          codes,
+          type = type,
+          lookup_version = lookup_version,
+          relationship_version = relationship_version,
+          relationship_types = relationship_types,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add HAS_ATTRIBUTES endpoint to API router
+#'
+#' Adds a POST endpoint at `/HAS_ATTRIBUTES` that wraps `codeminer::HAS_ATTRIBUTES()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_has_attributes_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/HAS_ATTRIBUTES",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        lookup_version = "latest",
+        relationship_version = "latest",
+        relationship_types = NULL,
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::HAS_ATTRIBUTES(
+          codes,
+          type = type,
+          lookup_version = lookup_version,
+          relationship_version = relationship_version,
+          relationship_types = relationship_types,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add RELATIONSHIP_TYPES_FROM endpoint to API router
+#'
+#' Adds a POST endpoint at `/RELATIONSHIP_TYPES_FROM` that wraps
+#' `codeminer::RELATIONSHIP_TYPES_FROM()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_relationship_types_from_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/RELATIONSHIP_TYPES_FROM",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        relationship_version = "latest",
+        col_filters = "default"
+      ) {
+        codeminer::RELATIONSHIP_TYPES_FROM(
+          codes,
+          type = type,
+          relationship_version = relationship_version,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add RELATIONSHIP_TYPES_TO endpoint to API router
+#'
+#' Adds a POST endpoint at `/RELATIONSHIP_TYPES_TO` that wraps
+#' `codeminer::RELATIONSHIP_TYPES_TO()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_relationship_types_to_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/RELATIONSHIP_TYPES_TO",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        relationship_version = "latest",
+        col_filters = "default"
+      ) {
+        codeminer::RELATIONSHIP_TYPES_TO(
+          codes,
+          type = type,
+          relationship_version = relationship_version,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add MAP endpoint to API router
+#'
+#' Adds a POST endpoint at `/MAP` that wraps `codeminer::MAP()`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_map_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/MAP",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        from = NULL,
+        to = NULL,
+        map_version = "latest",
+        lookup_version = "latest",
+        col_filters = "default"
+      ) {
+        codeminer::MAP(
+          codes,
+          from = from,
+          to = to,
+          map_version = map_version,
+          lookup_version = lookup_version,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add metadata endpoint to API router
+#'
+#' Adds a GET endpoint at `/metadata` that wraps
+#' `codeminer::get_codeminer_metadata()`. Returns metadata about available
+#' lookup, mapping, and relationship tables in the database.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_metadata_endpoint <- function(pr) {
+  pr$handle(
+    method = "GET",
+    path = "/metadata",
+    handler = codeminer_handler_factory(
+      function(type = "lookup,mapping,relationship") {
+        # type comes as comma-separated string from query param
+        type <- trimws(strsplit(type, ",")[[1]])
+        codeminer::get_codeminer_metadata(type = type)
       }
     )
   )
