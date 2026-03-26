@@ -209,6 +209,50 @@ codeminer_handler_factory <- function(f) {
   wrapper
 }
 
+#' Customise OpenAPI spec so POST endpoints use JSON request body
+#'
+#' Plumber auto-generates OpenAPI specs with all handler parameters as query
+#' params, even for POST endpoints. This function post-processes the spec to
+#' convert query parameters into a `requestBody` with JSON schema for POST
+#' methods, so Swagger UI renders a JSON body editor instead of individual
+#' query param inputs.
+#'
+#' GET endpoints are left unchanged.
+#'
+#' @param spec The auto-generated OpenAPI spec (a nested list)
+#' @return The modified spec
+#' @keywords internal
+#' @noRd
+post_body_api_spec <- function(spec) {
+  for (path_name in names(spec$paths)) {
+    post <- spec$paths[[path_name]]$post
+    if (is.null(post)) next
+
+    params <- post$parameters
+    if (is.null(params) || length(params) == 0) next
+
+    properties <- list()
+    required <- character()
+
+    for (p in params) {
+      if (!identical(p[["in"]], "query")) next
+      properties[[p$name]] <- p$schema
+      if (isTRUE(p$required)) required <- c(required, p$name)
+    }
+
+    schema <- list(type = "object", properties = properties)
+    if (length(required) > 0) schema$required <- as.list(required)
+
+    post$requestBody <- list(
+      required = TRUE,
+      content = list(`application/json` = list(schema = schema))
+    )
+    post$parameters <- NULL
+    spec$paths[[path_name]]$post <- post
+  }
+  spec
+}
+
 #' Ensure all elements of a character vector have names
 #'
 #' Used to guarantee that codeminer messages/warnings/errors, which may be named
