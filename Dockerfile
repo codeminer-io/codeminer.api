@@ -10,13 +10,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install remotes for GitHub package installation
 RUN R -e 'install.packages("remotes", repos = "https://cloud.r-project.org")'
 
-# Install codeminer + codeminer.api from GitHub
+# Install codeminer (dependency) from GitHub
 RUN R -e 'remotes::install_github("codeminer-io/codeminer")'
-RUN R -e 'remotes::install_github("codeminer-io/codeminer.api")'
 
-# Build dummy database (can be overridden via volume mount)
-RUN mkdir -p /data && \
-    Rscript -e 'codeminer::create_dummy_database("/data/codeminer.duckdb")'
+# Ensure latest DuckDB binary (base image may bundle an older version)
+RUN R -e 'install.packages("duckdb", repos = "https://p3m.dev/cran/__linux__/jammy/latest")'
+
+# Install codeminer.api from local source
+COPY . /tmp/codeminer.api
+RUN R -e 'remotes::install_local("/tmp/codeminer.api")' && rm -rf /tmp/codeminer.api
+
+RUN mkdir -p /data
 
 ENV CODEMINER_DB_PATH=/data/codeminer.duckdb
 

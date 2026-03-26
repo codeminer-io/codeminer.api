@@ -2,9 +2,9 @@ services:
   codeminer-api:
     build: .
     ports:
-      - "8000:8000"
+      - "${CODEMINER_API_PORT:-8000}:8000"
     volumes:
-      - ./data:/data
+      - ${CODEMINER_DB_PATH:?Set CODEMINER_DB_PATH}:/data/codeminer.duckdb:ro
     environment:
       - CODEMINER_DB_PATH=/data/codeminer.duckdb
     restart: unless-stopped
