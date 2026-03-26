@@ -4,32 +4,51 @@
 \alias{DESCRIPTION}
 \title{Search for codes that match a description}
 \usage{
-DESCRIPTION(pattern, code_type, .return_raw = FALSE)
+DESCRIPTION(
+  pattern,
+  type = NULL,
+  lookup_version = "latest",
+  ignore_case = TRUE,
+  preferred_description_only = TRUE,
+  col_filters = "default",
+  .return_raw = FALSE
+)
 }
 \arguments{
-\item{pattern}{The description to search for. See \code{\link[stringr:str_detect]{stringr::str_detect()}} for details.}
+\item{pattern}{The description to search for. See \code{\link[stringr:str_detect]{stringr::str_detect()}} for
+details.}
 
-\item{code_type}{character. Type of clinical code system to be searched.
-Depends on what is available in the lookup tables. See \code{\link[codeminer:add_lookup_table]{add_lookup_table()}}
-on how to add new lookup tables. This can also be configured through the \code{codeminer.code_type} option.}
+\item{type}{character. Type of clinical code system to be searched. Optional
+if input is a data frame with code_type column. Depends on what is
+available in the lookup tables. See \code{\link[codeminer:add_lookup_table]{add_lookup_table()}} on how to add new
+lookup tables. This can also be configured through the
+\code{codeminer.code_type} option.}
+
+\item{lookup_version}{character. Version of the lookup table to use. Default:
+\code{"latest"}. Can be configured through the \code{codeminer.lookup_version}
+option.}
+
+\item{ignore_case}{If \code{TRUE} (default), ignore case in \code{description}.}
+
+\item{preferred_description_only}{\code{logical}. If \code{TRUE} (default), return only
+preferred descriptions.}
+
+\item{col_filters}{Column filter specification. Use \code{"default"} for standard
+filters, \code{NULL} for no filtering, or a named list for custom filters.}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as tibble.}
 }
 \value{
-The result of \code{\link[codeminer:CODES]{CODES()}} for codes that match the description, or a character vector of codes if
-\code{codes_only} is \code{TRUE}.
+A \code{codeminer_codelist} with codes that match the description.
 }
 \description{
-Returns a data frame with clinical codes that match the provided description pattern.
+Returns a codelist with clinical codes that match the provided description
+pattern.
 }
 \examples{
 \dontrun{
-# Search for ICD-10 codes with descriptions matching "asthma"
-DESCRIPTION(pattern = "asthma", code_type = "icd10")
-
-# Get raw response
-DESCRIPTION(pattern = "asthma", code_type = "icd10", .return_raw = TRUE)
+DESCRIPTION(pattern = "asthma", type = "icd10")
 }
 
 }

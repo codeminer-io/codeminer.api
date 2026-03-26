@@ -192,8 +192,10 @@ codeminer_handler_factory <- function(f) {
 
   # Create wrapper that preserves signature for Swagger
   wrapper <- function(req, res) {
-    # Extract args that match f's parameters from the query/body
-    args <- req$args[rlang::fn_fmls_names(f)]
+    # Extract args that match f's parameters from query and/or POST body
+    all_args <- c(req$args, req$body)
+    param_names <- intersect(rlang::fn_fmls_names(f), names(all_args))
+    args <- all_args[param_names]
     codeminer_handle(rlang::exec(f, !!!args), res)
   }
 

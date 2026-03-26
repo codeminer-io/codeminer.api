@@ -5,247 +5,272 @@ vignette: >
   %\VignetteIndexEntry{Introduction to codeminer.api}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = FALSE
 )
 ```
 
-## Introduction
+## Overview
 
-`codeminer.api` provides a REST API wrapper for the `codeminer` package, allowing you to access clinical code mappings through HTTP endpoints. This vignette demonstrates how to set up and use the API server.
+`codeminer.api` provides two things:
 
-## Setting Up a Database
+1. A **REST API server** that exposes all `codeminer` query functions as HTTP
+   endpoints.
+2. **Client wrapper functions** (`CODES()`, `DESCRIPTION()`, `MAP()`, etc.)
+   that are drop-in replacements for the equivalent `codeminer` functions --
+   same signatures, same outputs, same messages and errors -- except the work
+   happens on the server.
 
-For this tutorial, we'll use a dummy database. In production, you would point to your actual CodeMiner database.
+## Setup
 
-```{r setup}
-library(codeminer.api)
+### 1. Set the database path
 
-# Create a temporary dummy database
+Point `CODEMINER_DB_PATH` at your CodeMiner database:
+
+```{r setup-db}
+# Set for the current session
+Sys.setenv(CODEMINER_DB_PATH = "/path/to/your/codeminer.duckdb")
+
+# Or create a dummy database for testing
 db_path <- tempfile(fileext = ".duckdb")
 codeminer::create_dummy_database(db_path)
-
-# Set the environment variable
 Sys.setenv(CODEMINER_DB_PATH = db_path)
 ```
 
-## Running the API Server
+### 2. Start the API server
 
-### Foreground Mode
+```{r start-server}
+library(codeminer.api)
 
-Start the server in foreground mode for interactive use. This will block your R session until you stop it with Ctrl+C or the Stop button in RStudio.
-
-```{r foreground, eval = FALSE}
-# Start on default port 8000
-run_codeminer_api()
-
-# Custom configuration
-run_codeminer_api(
-  host = "127.0.0.1",
-  port = 9000,
-  docs = TRUE
-)
-```
-
-### Background Mode
-
-For most use cases, you'll want to run the API in the background:
-
-```{r background, eval = FALSE}
-# Start in background (do not run during vignette build)
+# Start in background (returns immediately)
 bg <- run_codeminer_api(
-  background = TRUE,
-  port = 8888,
-  quiet = TRUE
+  host = "127.0.0.1",
+  port = 8000,
+  background = TRUE
 )
 
-# Check if server is running
+# Check it's alive
 bg$is_alive()
-
-# Get process ID
-bg$get_pid()
 ```
 
-## Using the API Endpoints
+### 3. Point the client at the server
 
-Once the server is running, you can make HTTP requests to access the data.
+```{r set-url}
+options(codeminer.api.url = "http://127.0.0.1:8000")
+```
 
-### Search by Description Pattern
+## Using the client wrappers
 
-The `/DESCRIPTION` endpoint searches for codes matching a text pattern:
+The client wrappers mirror `codeminer` exactly. If you already know `codeminer`,
+you know `codeminer.api`:
 
-```{r description_endpoint, eval = FALSE}
+### Search descriptions
+
+```{r description}
+# Find ICD-10 codes mentioning "asthma"
+DESCRIPTION("asthma", type = "ICD-10")
+```
+
+### Look up specific codes
+
+```{r codes}
+# Single code
+CODES("J45", type = "ICD-10")
+
+# Multiple codes
+CODES("J45", "E11", "I10", type = "ICD-10")
+
+# Pipe-separated syntax works too
+CODES("J45 || E11 || I10", type = "ICD-10")
+```
+
+### Search codes by pattern
+
+```{r codes-like}
+# Regex match on code values
+CODES_LIKE("^J45", type = "ICD-10")
+```
+
+### Hierarchy traversal
+
+```{r hierarchy}
+# All descendants (transitive children)
+CHILDREN("J45", type = "ICD-10")
+
+# Immediate children only
+N_CHILDREN("J45", depth = 1, type = "ICD-10")
+
+# All ancestors
+PARENTS("J450", type = "ICD-10")
+
+# Immediate parents only
+N_PARENTS("J450", depth = 1, type = "ICD-10")
+```
+
+### Attributes
+
+```{r attributes}
+# Get attributes for codes
+ATTRIBUTES_FOR("73211009", type = "sct")
+
+# Get codes that have certain attributes
+HAS_ATTRIBUTES("73211009", type = "sct")
+```
+
+### Relationship types
+
+```{r relationship-types}
+# What relationship types originate from these codes?
+RELATIONSHIP_TYPES_FROM("73211009", type = "sct")
+
+# What relationship types point to these codes?
+RELATIONSHIP_TYPES_TO("73211009", type = "sct")
+```
+
+### Code mapping
+
+```{r map}
+# Map ICD-10 codes to Read 2
+MAP("J45", from = "ICD-10", to = "Read 2")
+```
+
+### Database metadata
+
+```{r metadata}
+# Discover what code types and versions are available
+get_codeminer_metadata()
+
+# Just lookup tables
+get_codeminer_metadata("lookup")
+
+# Lookup and mapping tables
+get_codeminer_metadata(c("lookup", "mapping"))
+```
+
+## Transparency: API vs local
+
+The client wrappers are designed to be transparent. You should not be able to
+tell the difference between calling through the API and calling `codeminer`
+directly:
+
+```{r transparency}
+# These should produce identical results
+codeminer.api::CODES("J45", type = "ICD-10")
+codeminer::CODES("J45", type = "ICD-10")
+
+# Errors and warnings are also reproduced faithfully
+codeminer.api::CODES("nonexistent", type = "ICD-10")
+codeminer::CODES("nonexistent", type = "ICD-10")
+```
+
+## Using the REST API directly
+
+You can also call the endpoints directly with `httr2` or `curl`. All data
+endpoints accept POST requests with a JSON body:
+
+```{r httr2-direct}
 library(httr2)
 
-response <- request("http://127.0.0.1:8888/DESCRIPTION") |>
-  req_url_query(
-    pattern = "asthma",
-    code_type = "icd10"
-  ) |>
+response <- request("http://127.0.0.1:8000/DESCRIPTION") |>
+  req_method("POST") |>
+  req_body_json(list(pattern = "asthma", type = "ICD-10")) |>
   req_perform()
 
-# Parse JSON response
-results <- resp_body_json(response)
-str(results)
+resp_body_json(response, simplifyVector = TRUE)
 ```
 
-### Lookup Specific Codes
+Or from the command line:
 
-The `/CODES` endpoint retrieves descriptions for specific codes:
-
-```{r codes_endpoint, eval = FALSE}
-# Example: query the CODES endpoint (do not run during vignette build)
-response <- request("http://127.0.0.1:8888/CODES") |>
-  req_url_query(
-    codes = "J45",
-    code_type = "icd10"
-  ) |>
-  req_perform()
-
-results <- resp_body_json(response)
-str(results)
+```bash
+curl -X POST http://127.0.0.1:8000/DESCRIPTION \
+  -H "Content-Type: application/json" \
+  -d '{"pattern": "asthma", "type": "ICD-10"}'
 ```
 
-You can also query multiple codes at once by providing a comma-separated string:
+### Available endpoints
 
-```{r codes_multiple, eval = FALSE}
-# Example: query multiple codes (do not run during vignette build)
-response <- request("http://127.0.0.1:8888/CODES") |>
-  req_url_query(
-    codes = c("J45", "E11", "I10"),
-    code_type = "icd10",
-    .multi = "explode"
-  ) |>
-  req_perform()
+| Endpoint | Parameters |
+|----------|-----------|
+| `GET /health` | (none) |
+| `POST /DESCRIPTION` | `pattern`, `type`, `lookup_version`, `ignore_case`, `preferred_description_only`, `col_filters` |
+| `POST /CODES` | `codes`, `type`, `lookup_version`, `preferred_description_only`, `col_filters` |
+| `POST /CODES_LIKE` | `pattern`, `type`, `lookup_version`, `preferred_description_only`, `col_filters` |
+| `POST /CHILDREN` | `codes`, `type`, `lookup_version`, `relationship_version`, `preferred_description_only`, `col_filters` |
+| `POST /N_CHILDREN` | `codes`, `depth`, `type`, `lookup_version`, `relationship_version`, `preferred_description_only`, `col_filters` |
+| `POST /PARENTS` | `codes`, `type`, `lookup_version`, `relationship_version`, `preferred_description_only`, `col_filters` |
+| `POST /N_PARENTS` | `codes`, `depth`, `type`, `lookup_version`, `relationship_version`, `preferred_description_only`, `col_filters` |
+| `POST /ATTRIBUTES_FOR` | `codes`, `type`, `lookup_version`, `relationship_version`, `relationship_types`, `preferred_description_only`, `col_filters` |
+| `POST /HAS_ATTRIBUTES` | `codes`, `type`, `lookup_version`, `relationship_version`, `relationship_types`, `preferred_description_only`, `col_filters` |
+| `POST /RELATIONSHIP_TYPES_FROM` | `codes`, `type`, `relationship_version`, `col_filters` |
+| `POST /RELATIONSHIP_TYPES_TO` | `codes`, `type`, `relationship_version`, `col_filters` |
+| `POST /MAP` | `codes`, `from`, `to`, `map_version`, `lookup_version`, `col_filters` |
+| `GET /metadata` | `type` (optional, comma-separated: `lookup`, `mapping`, `relationship`) |
 
-results <- resp_body_json(response)
-str(results)
+### Swagger UI
+
+When the server is running with `docs = TRUE` (the default), interactive API
+documentation is available at `http://127.0.0.1:8000/__docs__/`.
+
+## Checking the connection
+
+```{r check-connection}
+# Diagnostic function
+check_api_connection()
 ```
 
-## Managing the Background Process
+## Stopping the server
 
-### Checking Status
-
-```{r status, eval = FALSE}
-# Check process status (do not run during vignette build)
-# Is the process still running?
-bg$is_alive()
-
-# Get stdout/stderr
-if (bg$is_alive()) {
-  # Read recent output
-  cat(bg$read_output())
-  
-  # Read recent errors (if any)
-  cat(bg$read_error())
-}
-```
-
-### Stopping the Server
-
-```{r stop, eval = FALSE}
-# Stop the server (do not run during vignette build)
+```{r stop}
 bg$kill()
-
-# Verify it stopped
 bg$is_alive()
 ```
 
-## Interactive API Documentation
+## Docker deployment
 
-When the server runs with `docs = TRUE` (the default), you can access Swagger UI for interactive API testing:
+For production use, the package includes a `Dockerfile` and
+`docker-compose.yml`:
 
-1. Start the server: `run_codeminer_api()`
-2. Open your browser to: `http://127.0.0.1:8000/__docs__/`
-3. Try out endpoints directly in the browser
+```bash
+# Build and run
+docker-compose up -d
 
-To disable documentation (e.g., in production):
-
-```{r no_docs, eval = FALSE}
-run_codeminer_api(docs = FALSE)
-```
-
-## Complete Workflow Example
-
-Here's a complete example workflow:
-
-```{r workflow, eval = FALSE}
-# Complete workflow example (do not run during vignette build)
-# 1. Set up database
-temp_db <- tempfile(fileext = ".duckdb")
-codeminer::create_dummy_database(temp_db)
-Sys.setenv(CODEMINER_DB_PATH = temp_db)
-
-# 2. Start API server
-api_process <- run_codeminer_api(
-  background = TRUE,
-  port = 8889,
-  quiet = TRUE
-)
-
-# 3. Query the API
-library(httr2)
-
-# Search for diabetes codes
-diabetes_response <- request("http://127.0.0.1:8889/DESCRIPTION") |>
-  req_url_query(pattern = "diabetes", code_type = "icd10") |>
-  req_perform()
-
-diabetes_codes <- resp_body_json(diabetes_response)
-print(diabetes_codes)
-
-# Lookup specific codes
-lookup_response <- request("http://127.0.0.1:8889/CODES") |>
-  req_url_query(
-    codes = c("J45", "E11", "I10"),
-    code_type = "icd10",
-    .multi = "explode"
-  ) |>
-  req_perform()
-
-code_info <- resp_body_json(lookup_response)
-str(code_info)
-
-# 4. Clean up
-api_process$kill()
-api_process$is_alive() # verify it stopped
-file.remove(temp_db)
+# Mount your real database
+# Edit docker-compose.yml to map your data directory:
+#   volumes:
+#     - /path/to/your/data:/data
 ```
 
 ## Troubleshooting
 
-### Database Path Not Set
+**"CODEMINER_DB_PATH not set"** -- Set the environment variable before starting
+the server:
 
-If you see errors about missing database paths:
-
-```{r troubleshoot_db, eval = FALSE}
-# Check if set
-Sys.getenv("CODEMINER_DB_PATH")
-
-# Set it
-Sys.setenv(CODEMINER_DB_PATH = "/path/to/database.duckdb")
+```{r troubleshoot-db}
+Sys.setenv(CODEMINER_DB_PATH = "/path/to/your/codeminer.duckdb")
 ```
 
-### Background Process Failed to Start
+**"Failed to connect to CodeMiner API"** -- The server isn't running or the URL
+is wrong:
 
-Check the error output:
+```{r troubleshoot-connect}
+# Check the configured URL
+getOption("codeminer.api.url")
 
-```{r troubleshoot_bg, eval = FALSE}
+# Test the connection
+check_api_connection()
+```
+
+**Background process died** -- Check the error output:
+
+```{r troubleshoot-bg}
 if (!bg$is_alive()) {
-  cat("Error output:\n", bg$read_error(), "\n")
-  cat("Standard output:\n", bg$read_output(), "\n")
-}
-```
-
-```{r cleanup, include = FALSE}
-# Clean up demo database
-if (file.exists(db_path)) {
-  file.remove(db_path)
+  cat(bg$read_all_error())
 }
 ```

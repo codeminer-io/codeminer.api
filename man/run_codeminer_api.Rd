@@ -52,8 +52,10 @@ When \code{background = TRUE}, the function returns a process handle with method
 \section{Environment Variables}{
 
 The \code{CODEMINER_DB_PATH} environment variable must be set to the path
-of your CodeMiner database. This is automatically passed from the parent
-process to the background process.
+of your CodeMiner database. The value from the parent session is passed
+explicitly to the background process. Project-level \code{.Renviron} files are
+intentionally not loaded in the background process, so the value you set
+via \code{Sys.setenv()} in your interactive session always takes precedence.
 }
 
 \examples{

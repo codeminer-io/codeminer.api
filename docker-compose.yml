@@ -1,0 +1,10 @@
+services:
+  codeminer-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      - CODEMINER_DB_PATH=/data/codeminer.duckdb
+    restart: unless-stopped

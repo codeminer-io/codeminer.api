@@ -26,7 +26,9 @@ validate_api_url <- function(url, call = rlang::caller_env()) {
 #' Make a request to the CodeMiner API
 #'
 #' @param endpoint Character. API endpoint path (e.g., "/DESCRIPTION")
-#' @param query_params List. Named list of query parameters
+#' @param query_params List. Named list of query parameters (for GET requests)
+#' @param body_params List. Named list of body parameters (for POST requests).
+#'   When non-NULL, the request is sent as POST with a JSON body.
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
 #'
@@ -36,6 +38,7 @@ validate_api_url <- function(url, call = rlang::caller_env()) {
 api_request <- function(
   endpoint,
   query_params = list(),
+  body_params = NULL,
   .return_raw = FALSE,
   call = rlang::caller_env()
 ) {
@@ -44,9 +47,18 @@ api_request <- function(
 
   response <- tryCatch(
     {
-      httr2::request(full_url) |>
-        httr2::req_url_query(!!!query_params, .multi = "explode") |>
-        httr2::req_perform()
+      req <- httr2::request(full_url)
+
+      if (!is.null(body_params)) {
+        req <- req |>
+          httr2::req_method("POST") |>
+          httr2::req_body_json(body_params)
+      } else {
+        req <- req |>
+          httr2::req_url_query(!!!query_params, .multi = "explode")
+      }
+
+      req |> httr2::req_perform()
     },
 
     # ---- HANDLE ALL HTTP ERROR CODES HERE (400–599) ----
@@ -92,12 +104,24 @@ api_request <- function(
   }
 
   # ---- SUCCESS ----
-  parsed <- httr2::resp_body_json(response, simplifyVector = TRUE)
+  # bigint_as_char = TRUE prevents SNOMED code rounding (issue #6)
+  parsed <- httr2::resp_body_json(
+    response,
+    simplifyVector = TRUE,
+    bigint_as_char = TRUE
+  )
 
   # Replay warnings/messages in client
   print_captured_warnings_and_messages(parsed)
 
-  tibble::as_tibble(parsed$result)
+  result <- tibble::as_tibble(parsed$result)
+
+  # Wrap as codeminer_codelist if it has the expected columns
+  if (all(c("code", "description", "code_type") %in% names(result))) {
+    class(result) <- c("codeminer_codelist", class(result))
+  }
+
+  result
 }
 
 #' Check if CodeMiner API is available

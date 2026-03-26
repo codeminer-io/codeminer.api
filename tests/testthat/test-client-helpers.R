@@ -47,31 +47,63 @@ test_that("api_request handles connection errors gracefully", {
 
   # Should wrap httr2 error with helpful message
   expect_error(
-    api_request("/DESCRIPTION", list(pattern = "test", code_type = "icd10")),
+    api_request("/DESCRIPTION", body_params = list(pattern = "test", type = "icd10")),
     "Failed to connect"
   )
 })
 
-test_that("api_request parses JSON to tibble by default", {
+test_that("api_request sends POST when body_params is provided", {
   skip_if_not_installed("httr2")
 
   withr::local_options(codeminer.api.url = "http://localhost:8000")
 
-  # Mock httr2::req_perform to return a successful response
+  captured_req <- NULL
+
   local_mocked_bindings(
     req_perform = function(req) {
-      # Create mock response with JSON body
-      structure(
-        list(),
-        class = "httr2_response"
+      captured_req <<- req
+      structure(list(), class = "httr2_response")
+    },
+    .package = "httr2"
+  )
+
+  local_mocked_bindings(
+    resp_body_json = function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
+      list(
+        result = data.frame(
+          code = "J45",
+          description = "Asthma",
+          code_type = "icd10",
+          stringsAsFactors = FALSE
+        )
       )
     },
     .package = "httr2"
   )
 
-  # Also mock resp_body_json
+  result <- api_request(
+    "/CODES",
+    body_params = list(codes = "J45", type = "icd10")
+  )
+
+  expect_s3_class(result, "tbl_df")
+  expect_true("code" %in% names(result))
+})
+
+test_that("api_request sends GET when body_params is NULL", {
+  skip_if_not_installed("httr2")
+
+  withr::local_options(codeminer.api.url = "http://localhost:8000")
+
   local_mocked_bindings(
-    resp_body_json = function(resp, simplifyVector = FALSE) {
+    req_perform = function(req) {
+      structure(list(), class = "httr2_response")
+    },
+    .package = "httr2"
+  )
+
+  local_mocked_bindings(
+    resp_body_json = function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
       list(
         result = data.frame(
           code = "J45",
@@ -86,11 +118,44 @@ test_that("api_request parses JSON to tibble by default", {
 
   result <- api_request(
     "/DESCRIPTION",
-    list(pattern = "asthma", code_type = "icd10")
+    query_params = list(pattern = "asthma", type = "icd10")
   )
 
   expect_s3_class(result, "tbl_df")
-  expect_true("code" %in% names(result))
+})
+
+test_that("api_request wraps result as codeminer_codelist", {
+  skip_if_not_installed("httr2")
+
+  withr::local_options(codeminer.api.url = "http://localhost:8000")
+
+  local_mocked_bindings(
+    req_perform = function(req) {
+      structure(list(), class = "httr2_response")
+    },
+    .package = "httr2"
+  )
+
+  local_mocked_bindings(
+    resp_body_json = function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
+      list(
+        result = data.frame(
+          code = "J45",
+          description = "Asthma",
+          code_type = "icd10",
+          stringsAsFactors = FALSE
+        )
+      )
+    },
+    .package = "httr2"
+  )
+
+  result <- api_request(
+    "/CODES",
+    body_params = list(codes = "J45", type = "icd10")
+  )
+
+  expect_s3_class(result, "codeminer_codelist")
 })
 
 test_that("api_request returns raw response when .return_raw = TRUE", {
@@ -98,7 +163,6 @@ test_that("api_request returns raw response when .return_raw = TRUE", {
 
   withr::local_options(codeminer.api.url = "http://localhost:8000")
 
-  # Mock httr2::req_perform
   mock_response <- structure(
     list(
       status_code = 200,
@@ -115,7 +179,7 @@ test_that("api_request returns raw response when .return_raw = TRUE", {
 
   result <- api_request(
     "/DESCRIPTION",
-    list(pattern = "asthma", code_type = "icd10"),
+    body_params = list(pattern = "asthma", type = "icd10"),
     .return_raw = TRUE
   )
 
@@ -133,7 +197,7 @@ test_that("check_api_connection returns TRUE for successful connection", {
           status_code = 200,
           headers = list(`content-type` = "application/json"),
           body = charToRaw(
-            '{"status": "ok", "service": "codeminer-api", "version": "0.0.0.9000"}'
+            '{"status": "ok", "service": "codeminer-api", "version": "0.0.0.9001"}'
           )
         ),
         class = "httr2_response"
@@ -144,7 +208,7 @@ test_that("check_api_connection returns TRUE for successful connection", {
 
   local_mocked_bindings(
     resp_body_json = function(resp) {
-      list(status = "ok", service = "codeminer-api", version = "0.0.0.9000")
+      list(status = "ok", service = "codeminer-api", version = "0.0.0.9001")
     },
     .package = "httr2"
   )

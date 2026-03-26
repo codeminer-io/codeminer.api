@@ -112,8 +112,10 @@ run_codeminer_api_foreground <- function(
 #'
 #' @section Environment Variables:
 #' The `CODEMINER_DB_PATH` environment variable must be set to the path
-#' of your CodeMiner database. This is automatically passed from the parent
-#' process to the background process.
+#' of your CodeMiner database. The value from the parent session is passed
+#' explicitly to the background process. Project-level `.Renviron` files are
+#' intentionally not loaded in the background process, so the value you set
+#' via `Sys.setenv()` in your interactive session always takes precedence.
 #'
 #' @examples
 #' \dontrun{
@@ -146,6 +148,20 @@ run_codeminer_api <- function(
     # Validate early before spawning background process
     validate_codeminer_db_path()
 
+    # Check if port is already in use
+    port_con <- tryCatch(
+      suppressWarnings(socketConnection(host, port, open = "r", timeout = 1)),
+      error = function(e) NULL
+    )
+    if (!is.null(port_con)) {
+      close(port_con)
+      cli::cli_abort(c(
+        "Port {port} on {.val {host}} is already in use.",
+        "i" = "Stop the existing service or use a different port:",
+        " " = "{.code run_codeminer_api(port = {port + 1L}, background = TRUE)}"
+      ))
+    }
+
     # Run in background process by calling the foreground function
     bg <- callr::r_bg(
       func = function(host, port, docs, quiet, ...) {
@@ -167,7 +183,10 @@ run_codeminer_api <- function(
       ),
       env = c(
         callr::rcmd_safe_env(),
-        CODEMINER_DB_PATH = Sys.getenv("CODEMINER_DB_PATH")
+        CODEMINER_DB_PATH = Sys.getenv("CODEMINER_DB_PATH"),
+        # Prevent child process from loading project .Renviron, which could
+        # override CODEMINER_DB_PATH with a stale or different value
+        R_ENVIRON_USER = ""
       ),
       supervise = TRUE
     )
@@ -176,7 +195,6 @@ run_codeminer_api <- function(
     Sys.sleep(0.5)
 
     if (!bg$is_alive()) {
-      # Process died, show error
       err_output <- bg$read_all_error()
       cli::cli_abort(c(
         "Failed to start API in background mode.",
