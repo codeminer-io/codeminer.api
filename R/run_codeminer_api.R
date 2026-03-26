@@ -204,9 +204,13 @@ run_codeminer_api <- function(
       ))
     }
 
+    # Update client URL option to match the running server
+    api_url <- paste0("http://", host, ":", port)
+    options(codeminer.api.url = api_url)
+
     if (!quiet) {
       cli::cli_alert_success(
-        "CodeMiner API running in background at {.url http://{host}:{port}}"
+        "CodeMiner API running in background at {.url {api_url}}"
       )
       cli::cli_alert_info("Check status: {.code bg$is_alive()}")
       cli::cli_alert_info("Stop server: {.code bg$kill()}")
