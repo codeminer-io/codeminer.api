@@ -33,5 +33,8 @@ create_codeminer_api <- function() {
   pr <- add_map_endpoint(pr)
   pr <- add_metadata_endpoint(pr)
 
+  # Customise OpenAPI spec: POST endpoints use JSON requestBody
+  pr$setApiSpec(post_body_api_spec)
+
   pr
 }

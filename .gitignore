@@ -37,6 +37,9 @@ logs/
 .dockerignore
 docker-compose.override.yml
 
+# Deploy script (machine-specific paths)
+deploy.sh
+
 # Temporary files
 *~
 *.swp
