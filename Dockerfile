@@ -1,24 +1,32 @@
-FROM rocker/r-ver:4.4.0
+FROM rocker/r-ver:4.5.3
 
-# System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install pak (binary distribution — no compile dependencies needed)
+RUN Rscript -e 'install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))' \
+ && Rscript -e 'stopifnot(requireNamespace("pak", quietly = TRUE))'
 
-# Install remotes for GitHub package installation
-RUN R -e 'install.packages("remotes", repos = "https://cloud.r-project.org")'
+# Copy DESCRIPTION first so the sysreqs + dep-install layers are cached
+# independently of changes to R source files
+COPY DESCRIPTION /tmp/codeminer.api/DESCRIPTION
 
-# Install codeminer (dependency) from GitHub
-RUN R -e 'remotes::install_github("codeminer-io/codeminer")'
+# Resolve system dependencies for the full dep tree (including GitHub Remotes)
+# and install them via apt. pak queries Posit Package Manager and walks
+# Remotes recursively, so transitive sysreqs (e.g. zlib for haven, which
+# reaches us via codeminer -> ukbwranglr) are captured.
+RUN Rscript -e 'cat(pak::pkg_sysreqs("deps::/tmp/codeminer.api")$install_scripts, sep = "\n", file = "/tmp/sysreqs.sh")' \
+ && cat /tmp/sysreqs.sh \
+ && apt-get update \
+ && bash /tmp/sysreqs.sh \
+ && rm -rf /var/lib/apt/lists/* /tmp/sysreqs.sh
 
-# Ensure latest DuckDB binary (base image may bundle an older version)
-RUN R -e 'install.packages("duckdb", repos = "https://p3m.dev/cran/__linux__/jammy/latest")'
+# Install all R dependencies (pak handles Remotes automatically)
+RUN Rscript -e 'pak::local_install_deps("/tmp/codeminer.api", ask = FALSE)' \
+ && Rscript -e 'stopifnot(requireNamespace("codeminer", quietly = TRUE))'
 
-# Install codeminer.api from local source
+# Copy the rest of the source and install the package itself
 COPY . /tmp/codeminer.api
-RUN R -e 'remotes::install_local("/tmp/codeminer.api")' && rm -rf /tmp/codeminer.api
+RUN Rscript -e 'pak::local_install("/tmp/codeminer.api", ask = FALSE, upgrade = FALSE)' \
+ && Rscript -e 'stopifnot(requireNamespace("codeminer.api", quietly = TRUE))' \
+ && rm -rf /tmp/codeminer.api
 
 RUN mkdir -p /data
 
