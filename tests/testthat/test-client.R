@@ -2,7 +2,14 @@ test_that("DESCRIPTION calls api_request with correct POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
       api_request_calls <<- c(
         api_request_calls,
         list(list(
@@ -29,7 +36,14 @@ test_that("DESCRIPTION passes .return_raw to api_request", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
       api_request_calls <<- c(
         api_request_calls,
         list(list(return_raw = .return_raw))
@@ -47,8 +61,18 @@ test_that("DESCRIPTION passes all parameters", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(body_params = body_params))
+      )
       tibble::tibble(code = "J45", description = "Asthma", code_type = "icd10")
     },
     .package = "codeminer.api"
@@ -74,7 +98,14 @@ test_that("CODES accepts codes via ...", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
       api_request_calls <<- c(
         api_request_calls,
         list(list(endpoint = endpoint, body_params = body_params))
@@ -96,8 +127,18 @@ test_that("CODES accepts vector of codes", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(body_params = body_params))
+      )
       tibble::tibble(
         code = c("J45", "E11"),
         description = c("Asthma", "Type 2 diabetes"),
@@ -115,8 +156,18 @@ test_that("CODES passes .return_raw to api_request", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(return_raw = .return_raw)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(return_raw = .return_raw))
+      )
       structure(list(status_code = 200), class = "httr2_response")
     },
     .package = "codeminer.api"
@@ -130,8 +181,18 @@ test_that("CODES_LIKE calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
       tibble::tibble(code = "J450", description = "Asthma", code_type = "icd10")
     },
     .package = "codeminer.api"
@@ -147,8 +208,18 @@ test_that("CHILDREN calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
       tibble::tibble(code = "child1", description = "Child", code_type = "sct")
     },
     .package = "codeminer.api"
@@ -164,8 +235,18 @@ test_that("N_CHILDREN sends depth as string for Inf", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(body_params = body_params))
+      )
       tibble::tibble(code = "child1", description = "Child", code_type = "sct")
     },
     .package = "codeminer.api"
@@ -179,8 +260,18 @@ test_that("N_CHILDREN sends numeric depth for finite values", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(body_params = body_params))
+      )
       tibble::tibble(code = "child1", description = "Child", code_type = "sct")
     },
     .package = "codeminer.api"
@@ -194,9 +285,23 @@ test_that("PARENTS calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
-      tibble::tibble(code = "parent1", description = "Parent", code_type = "sct")
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
+      tibble::tibble(
+        code = "parent1",
+        description = "Parent",
+        code_type = "sct"
+      )
     },
     .package = "codeminer.api"
   )
@@ -210,9 +315,23 @@ test_that("N_PARENTS sends depth as string for Inf", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(body_params = body_params)))
-      tibble::tibble(code = "parent1", description = "Parent", code_type = "sct")
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(body_params = body_params))
+      )
+      tibble::tibble(
+        code = "parent1",
+        description = "Parent",
+        code_type = "sct"
+      )
     },
     .package = "codeminer.api"
   )
@@ -225,9 +344,23 @@ test_that("ATTRIBUTES_FOR calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
-      tibble::tibble(code = "attr1", description = "Attribute", code_type = "sct")
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
+      tibble::tibble(
+        code = "attr1",
+        description = "Attribute",
+        code_type = "sct"
+      )
     },
     .package = "codeminer.api"
   )
@@ -241,9 +374,23 @@ test_that("ATTRIBUTES_FOR normalises data frame relationship_types to character"
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(body_params = body_params)))
-      tibble::tibble(code = "attr1", description = "Attribute", code_type = "sct")
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(body_params = body_params))
+      )
+      tibble::tibble(
+        code = "attr1",
+        description = "Attribute",
+        code_type = "sct"
+      )
     },
     .package = "codeminer.api"
   )
@@ -260,9 +407,23 @@ test_that("HAS_ATTRIBUTES calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
-      tibble::tibble(code = "code1", description = "Has attr", code_type = "sct")
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
+      tibble::tibble(
+        code = "code1",
+        description = "Has attr",
+        code_type = "sct"
+      )
     },
     .package = "codeminer.api"
   )
@@ -275,8 +436,18 @@ test_that("RELATIONSHIP_TYPES_FROM calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
       tibble::tibble(result = "Is a")
     },
     .package = "codeminer.api"
@@ -291,8 +462,18 @@ test_that("RELATIONSHIP_TYPES_TO calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
       tibble::tibble(result = "Is a")
     },
     .package = "codeminer.api"
@@ -306,8 +487,18 @@ test_that("MAP calls correct endpoint with POST body", {
   api_request_calls <- list()
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(endpoint = endpoint, body_params = body_params)))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(endpoint = endpoint, body_params = body_params))
+      )
       tibble::tibble(code = "mapped", description = "Mapped", code_type = "sct")
     },
     .package = "codeminer.api"
@@ -334,12 +525,22 @@ test_that("get_codeminer_metadata calls correct endpoint with query params", {
   )
 
   local_mocked_bindings(
-    api_request = function(endpoint, query_params = list(), body_params = NULL, .return_raw = FALSE, call = rlang::caller_env()) {
-      api_request_calls <<- c(api_request_calls, list(list(
-        endpoint = endpoint,
-        query_params = query_params,
-        return_raw = .return_raw
-      )))
+    api_request = function(
+      endpoint,
+      query_params = list(),
+      body_params = NULL,
+      .return_raw = FALSE,
+      auth = auth_current(),
+      call = rlang::caller_env()
+    ) {
+      api_request_calls <<- c(
+        api_request_calls,
+        list(list(
+          endpoint = endpoint,
+          query_params = query_params,
+          return_raw = .return_raw
+        ))
+      )
       mock_response
     },
     .package = "codeminer.api"

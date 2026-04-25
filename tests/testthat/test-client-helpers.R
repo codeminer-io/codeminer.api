@@ -47,7 +47,10 @@ test_that("api_request handles connection errors gracefully", {
 
   # Should wrap httr2 error with helpful message
   expect_error(
-    api_request("/DESCRIPTION", body_params = list(pattern = "test", type = "icd10")),
+    api_request(
+      "/DESCRIPTION",
+      body_params = list(pattern = "test", type = "icd10")
+    ),
     "Failed to connect"
   )
 })
@@ -68,7 +71,11 @@ test_that("api_request sends POST when body_params is provided", {
   )
 
   local_mocked_bindings(
-    resp_body_json = function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
+    resp_body_json = function(
+      resp,
+      simplifyVector = FALSE,
+      bigint_as_char = FALSE
+    ) {
       list(
         result = data.frame(
           code = "J45",
@@ -103,7 +110,11 @@ test_that("api_request sends GET when body_params is NULL", {
   )
 
   local_mocked_bindings(
-    resp_body_json = function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
+    resp_body_json = function(
+      resp,
+      simplifyVector = FALSE,
+      bigint_as_char = FALSE
+    ) {
       list(
         result = data.frame(
           code = "J45",
@@ -137,7 +148,11 @@ test_that("api_request wraps result as codeminer_codelist", {
   )
 
   local_mocked_bindings(
-    resp_body_json = function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
+    resp_body_json = function(
+      resp,
+      simplifyVector = FALSE,
+      bigint_as_char = FALSE
+    ) {
       list(
         result = data.frame(
           code = "J45",
@@ -214,8 +229,7 @@ test_that("check_api_connection returns TRUE for successful connection", {
   )
 
   # Suppress cli output
-  withr::local_options(cli.default_handler = function(...) {
-  })
+  withr::local_options(cli.default_handler = function(...) {})
 
   result <- check_api_connection("http://localhost:8000")
   expect_true(result)
@@ -233,8 +247,7 @@ test_that("check_api_connection returns FALSE for failed connection", {
   )
 
   # Suppress cli output
-  withr::local_options(cli.default_handler = function(...) {
-  })
+  withr::local_options(cli.default_handler = function(...) {})
 
   result <- check_api_connection("http://nonexistent.local:9999")
   expect_false(result)
