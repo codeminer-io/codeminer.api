@@ -4,9 +4,18 @@ test_that("post_body_api_spec converts POST query params to requestBody", {
 
   # All POST endpoints should have requestBody, not parameters
   post_paths <- c(
-    "/DESCRIPTION", "/CODES", "/CODES_LIKE", "/CHILDREN", "/N_CHILDREN",
-    "/PARENTS", "/N_PARENTS", "/ATTRIBUTES_FOR", "/HAS_ATTRIBUTES",
-    "/RELATIONSHIP_TYPES_FROM", "/RELATIONSHIP_TYPES_TO", "/MAP"
+    "/DESCRIPTION",
+    "/CODES",
+    "/CODES_LIKE",
+    "/CHILDREN",
+    "/N_CHILDREN",
+    "/PARENTS",
+    "/N_PARENTS",
+    "/ATTRIBUTES_FOR",
+    "/HAS_ATTRIBUTES",
+    "/RELATIONSHIP_TYPES_FROM",
+    "/RELATIONSHIP_TYPES_TO",
+    "/MAP"
   )
 
   for (path in post_paths) {
