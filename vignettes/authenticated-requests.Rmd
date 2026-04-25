@@ -1,0 +1,193 @@
+---
+title: "Authenticated requests"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Authenticated requests}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r setup}
+library(codeminer.api)
+```
+
+## When you need this
+
+If the CodeMiner API server you are calling requires authentication
+(production deployments typically do), you need to attach an identity to each
+outgoing request. `codeminer.api` provides a small auth-strategy abstraction
+so you can configure this once per session and then use the regular helpers
+(`DESCRIPTION()`, `CODES()`, etc.) without thinking about auth on every call.
+
+If the server you are calling does not require authentication (a local
+development server with no `PLUMBER_SECRET`, for instance), nothing in this
+vignette applies to you.
+
+## Configuring auth (the common case)
+
+There are three ways to configure auth, in roughly increasing order of
+specificity. Pick whichever is most convenient for your workflow.
+
+### 1. Environment variable (recommended for development)
+
+Set `CODEMINER_DEV_USER` in your `.Renviron`:
+
+```
+CODEMINER_DEV_USER=alasdair
+```
+
+The package's default resolver picks this up and attaches an `X-Dev-User`
+header to every outgoing request. No code changes needed:
+
+```{r}
+DESCRIPTION(pattern = "asthma")
+```
+
+This only works against servers running with the `CODEMINER_DEV_AUTH=1`
+environment variable, which is intended for development setups. Production
+servers ignore the `X-Dev-User` header.
+
+### 2. Session-wide programmatic configuration
+
+If you need to switch identities mid-session, or want a strategy that env
+vars can't express, use `auth_use()`:
+
+```{r}
+auth_use(auth_dev_user("alasdair"))
+DESCRIPTION(pattern = "asthma")  # X-Dev-User: alasdair attached
+```
+
+`auth_clear()` removes the session setting and falls back to the env-var
+default.
+
+### 3. Per-call override
+
+Pass `auth = ...` directly to any helper. This wins over both the env var
+and the session setting:
+
+```{r}
+DESCRIPTION(pattern = "asthma", auth = auth_dev_user("admin"))
+```
+
+## Checking what's configured
+
+When something returns 401, the first question is "what auth am I actually
+sending?". Two introspection helpers answer this:
+
+```{r}
+auth_current()
+#> <codeminer_auth>
+#>   kind: dev_user
+#>   Dev user 'alasdair' (X-Dev-User header)
+
+auth_describe()
+#> [1] "Dev user 'alasdair' (X-Dev-User header)"
+```
+
+`auth_current()` returns the strategy that the next helper call would use
+(option from `auth_use()` if set, otherwise the env-var-driven default).
+`auth_describe()` returns just the description string, useful for embedding
+in your own logs or error messages.
+
+## Custom auth strategies
+
+If your server uses an auth scheme that the package doesn't ship a
+constructor for (institutional SSO, an API key, a bearer token from a
+separate auth service), build your own with `auth_custom()`.
+
+A strategy is just a function that takes an `httr2::request` and returns a
+(possibly modified) `httr2::request` — the same shape as `httr2::req_auth_*`.
+Wrap it with `auth_custom()` to get the package's printing and introspection
+support, then pass it to `auth_use()`:
+
+```{r}
+my_auth <- auth_custom(
+  function(req) httr2::req_auth_bearer_token(req, Sys.getenv("MY_TOKEN")),
+  description = "Bearer token from MY_TOKEN env var"
+)
+auth_use(my_auth)
+```
+
+### Worked example: token from a separate auth service
+
+Some institutional setups require the client to exchange a long-lived
+credential (username + API key, say) for a short-lived bearer token by
+calling a separate auth endpoint, then send that token with each request.
+
+The strategy pattern handles this naturally because closures can hold cached
+state across calls — you don't need to re-fetch the token for every request:
+
+```{r}
+my_org_token_service_auth <- function(
+  username = Sys.getenv("MYORG_USERNAME"),
+  api_key = Sys.getenv("MYORG_API_KEY"),
+  token_url = "https://auth.myorg.internal/token"
+) {
+  force(username)
+  force(api_key)
+  force(token_url)
+
+  cached_token <- NULL
+  cached_until <- 0
+
+  auth_custom(
+    function(req) {
+      now <- unclass(Sys.time())
+
+      # Refresh proactively, before the cached token expires
+      if (is.null(cached_token) || now > cached_until - 30) {
+        resp <- httr2::request(token_url) |>
+          httr2::req_body_json(list(
+            username = username,
+            api_key = api_key
+          )) |>
+          httr2::req_perform() |>
+          httr2::resp_body_json()
+        cached_token <<- resp$access_token
+        cached_until <<- now + resp$expires_in
+      }
+
+      httr2::req_auth_bearer_token(req, cached_token)
+    },
+    description = paste0("Bearer token from ", token_url, " (cached)")
+  )
+}
+
+auth_use(my_org_token_service_auth())
+```
+
+Two patterns worth noting:
+
+- **`<<-` updates the variables in the enclosing scope** so the cache
+  persists across calls. Without `<<-`, each call would create new local
+  variables and the cache would never warm up.
+- **`force()` captures parameters eagerly.** R's lazy evaluation would
+  otherwise capture a *promise* to evaluate the parameter; if the user
+  later reassigned the variable they passed in, the closure would see the
+  new value. `force()` is the standard guard.
+
+## The strategy contract
+
+For anyone writing their own strategy, the rules:
+
+> A strategy receives an `httr2::request` immediately before it is performed,
+> with URL and body already set. It may modify any aspect — headers, options,
+> even the URL — and must return the modified request. Strategies should not
+> perform the request themselves.
+
+The order of resolution at call time is:
+
+1. The `auth = ...` argument passed directly to the helper, if given.
+2. Otherwise, the strategy set by `auth_use()`, if any.
+3. Otherwise, `default_auth()` — which returns `auth_dev_user()` if
+   `CODEMINER_DEV_USER` is set, or `auth_none()` otherwise.

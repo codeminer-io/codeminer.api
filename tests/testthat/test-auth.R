@@ -126,7 +126,7 @@ test_that("default_auth() returns auth_none() when CODEMINER_DEV_USER unset", {
   expect_equal(attr(default_auth(), "auth_kind"), "none")
 })
 
-test_that("default_auth() returns auth_dev_user() when CODEMINER_DEV_USER set", {
+test_that("default_auth() picks auth_dev_user() when DEV_USER env set", {
   withr::local_envvar(CODEMINER_DEV_USER = "carol")
 
   strategy <- default_auth()
@@ -137,8 +137,9 @@ test_that("default_auth() returns auth_dev_user() when CODEMINER_DEV_USER set", 
 })
 
 # ---- Helper integration ------------------------------------------------------
-# These tests intercept httr2::req_perform() and assert on the captured request
-# headers. They confirm the full path: helper -> api_request -> strategy applied.
+# These tests intercept httr2::req_perform() and assert on the captured
+# request headers. They confirm the full path:
+#   helper -> api_request -> strategy applied.
 
 mock_perform_capturing <- function(captured_env) {
   function(req) {
@@ -154,7 +155,11 @@ mock_perform_capturing <- function(captured_env) {
   }
 }
 
-mock_resp_body <- function(resp, simplifyVector = FALSE, bigint_as_char = FALSE) {
+mock_resp_body <- function(
+  resp,
+  simplifyVector = FALSE, # nolint: object_name_linter.
+  bigint_as_char = FALSE
+) {
   list(result = data.frame())
 }
 
@@ -196,7 +201,7 @@ test_that("DESCRIPTION() picks up auth_use() session setting at call time", {
   expect_equal(captured$req$headers[["X-Dev-User"]], "alice")
 })
 
-test_that("DESCRIPTION() picks up CODEMINER_DEV_USER env var via default_auth()", {
+test_that("DESCRIPTION() picks up DEV_USER env var via default_auth()", {
   withr::local_options(codeminer.api.url = "http://example.com")
   withr::local_options(codeminer.auth = NULL)
   withr::local_envvar(CODEMINER_DEV_USER = "dave")

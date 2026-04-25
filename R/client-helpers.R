@@ -184,14 +184,18 @@ print_captured_warnings_and_messages <- function(resp) {
     resp$warnings <- resp$warning[-1] |>
       purrr::map(convert_captured_message_to_cli_message_vector)
 
-    for (w in resp$warnings) cli::cli_warn(message = w)
+    for (w in resp$warnings) {
+      cli::cli_warn(message = w)
+    }
   }
   if (length(resp$messages)) {
     resp$messages <-
       resp$messages[-1] |>
       purrr::map(convert_captured_message_to_cli_message_vector)
 
-    for (m in resp$messages) cli::cli_inform(message = m)
+    for (m in resp$messages) {
+      cli::cli_inform(message = m)
+    }
   }
 }
 

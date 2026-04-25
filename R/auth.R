@@ -1,6 +1,6 @@
 # Auth strategy abstraction for client-side requests.
 #
-# A "strategy" is a function `req -> req` (same signature as `httr2::req_auth_*`).
+# A "strategy" is a function `req -> req` (same shape as `httr2::req_auth_*`).
 # The `auth_*()` constructors below are factories that return such functions,
 # wrapped with metadata for printing and introspection.
 #
@@ -89,7 +89,9 @@ auth_dev_user <- function(user_id = Sys.getenv("CODEMINER_DEV_USER", "")) {
   force(user_id)
   new_auth_strategy(
     fn = function(req) {
-      if (!nzchar(user_id)) return(req)
+      if (!nzchar(user_id)) {
+        return(req)
+      }
       httr2::req_headers(req, `X-Dev-User` = user_id)
     },
     kind = "dev_user",
