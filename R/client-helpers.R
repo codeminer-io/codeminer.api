@@ -31,6 +31,9 @@ validate_api_url <- function(url, call = rlang::caller_env()) {
 #'   When non-NULL, the request is sent as POST with a JSON body.
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
+#' @param auth Authentication strategy (see [auth_strategies]). Applied as
+#'   the final step before the request is performed, so strategies may
+#'   modify any aspect of the otherwise-built request.
 #'
 #' @return A tibble (if `.return_raw = FALSE`) or httr2 response object
 #' @keywords internal
@@ -40,6 +43,7 @@ api_request <- function(
   query_params = list(),
   body_params = NULL,
   .return_raw = FALSE,
+  auth = default_auth(),
   call = rlang::caller_env()
 ) {
   url <- validate_api_url(getOption("codeminer.api.url"), call)
@@ -57,6 +61,8 @@ api_request <- function(
         req <- req |>
           httr2::req_url_query(!!!query_params, .multi = "explode")
       }
+
+      req <- auth(req)
 
       req |> httr2::req_perform()
     },
