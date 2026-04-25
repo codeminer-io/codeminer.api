@@ -43,7 +43,7 @@ api_request <- function(
   query_params = list(),
   body_params = NULL,
   .return_raw = FALSE,
-  auth = default_auth(),
+  auth = auth_current(),
   call = rlang::caller_env()
 ) {
   url <- validate_api_url(getOption("codeminer.api.url"), call)

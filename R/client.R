@@ -4,9 +4,9 @@
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
 #' @param auth Authentication strategy (see [auth_strategies]). Defaults to
-#'   [default_auth()], which resolves to the session-wide setting from
-#'   [auth_use()] or to env-var-driven defaults. See
-#'   `vignette("authenticated-requests")`.
+#'   [auth_current()], which resolves to the session-wide setting from
+#'   [auth_use()], falling back to env-var-driven defaults via
+#'   [default_auth()]. See `vignette("authenticated-requests")`.
 #'
 #' @examples
 #' \dontrun{
@@ -23,7 +23,7 @@ DESCRIPTION <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   body_params <- list(
     pattern = pattern,
@@ -59,7 +59,7 @@ CODES <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -95,7 +95,7 @@ CODES_LIKE <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   body_params <- list(
     pattern = pattern,
@@ -130,7 +130,7 @@ CHILDREN <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -169,7 +169,7 @@ N_CHILDREN <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -211,7 +211,7 @@ PARENTS <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -250,7 +250,7 @@ N_PARENTS <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -292,7 +292,7 @@ ATTRIBUTES_FOR <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -337,7 +337,7 @@ HAS_ATTRIBUTES <- function(
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -378,7 +378,7 @@ RELATIONSHIP_TYPES_FROM <- function(
   relationship_version = "latest",
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -412,7 +412,7 @@ RELATIONSHIP_TYPES_TO <- function(
   relationship_version = "latest",
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -448,7 +448,7 @@ MAP <- function(
   lookup_version = "latest",
   col_filters = "default",
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = from)
 
@@ -479,7 +479,7 @@ MAP <- function(
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as list of data frames.
 #' @param auth Authentication strategy (see [auth_strategies]). Defaults to
-#'   [default_auth()]; see `vignette("authenticated-requests")`.
+#'   [auth_current()]; see `vignette("authenticated-requests")`.
 #'
 #' @return If a single type is requested, a data frame. If multiple types are
 #'   requested, a named list of data frames.
@@ -501,7 +501,7 @@ MAP <- function(
 get_codeminer_metadata <- function(
   type = c("lookup", "mapping", "relationship"),
   .return_raw = FALSE,
-  auth = default_auth()
+  auth = auth_current()
 ) {
   type <- match.arg(type, several.ok = TRUE)
 
