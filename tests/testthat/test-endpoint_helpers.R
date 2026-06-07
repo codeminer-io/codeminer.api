@@ -125,3 +125,23 @@ test_that("codeminer_handle captures codeminer_error", {
     list("x" = "Bad!", ">" = "Oops")
   )
 })
+
+test_that("codeminer_handle preserves the codeminer-specific class chain", {
+  expr <- function() {
+    cli::cli_abort(
+      c("x" = "Too big!"),
+      class = c("codeminer_max_tree_codes_exceeded", "codeminer_error"),
+      cli_message = c("x" = "Too big!")
+    )
+  }
+
+  res <- new.env()
+  output <- codeminer_handle(expr(), res)
+
+  # Full codeminer chain sent; base R condition classes dropped (cli_abort
+  # re-adds them client-side).
+  expect_equal(
+    output$error$error_type,
+    c("codeminer_max_tree_codes_exceeded", "codeminer_error")
+  )
+})

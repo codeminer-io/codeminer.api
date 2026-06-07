@@ -127,9 +127,10 @@ test_that("API endpoints respond correctly in background mode", {
 
   expect_equal(httr2::resp_status(response_tree_over), 422)
   over_body <- httr2::resp_body_json(response_tree_over, simplifyVector = TRUE)
+  # error_type carries the full codeminer-specific class chain
   expect_equal(
     over_body$error$error_type,
-    "codeminer_max_tree_codes_exceeded"
+    c("codeminer_max_tree_codes_exceeded", "codeminer_error")
   )
 
   # Test metadata endpoint (GET)

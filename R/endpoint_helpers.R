@@ -88,8 +88,9 @@ format_backend_error.default <- function(e, res) {
 #' @inheritParams format_backend_error
 #'
 #' @return A list suitable for JSON serialisation, containing:
-#'   - `error_type` – the most specific CodeMiner error class (e.g.,
-#'     `"codeminer_arg_validation_error"`)
+#'   - `error_type` – the CodeMiner-specific class chain (e.g.
+#'     `c("codeminer_max_tree_codes_exceeded", "codeminer_error")`), so client
+#'     errors mirror codeminer's native condition classes
 #'   - `error_message` – the stored CLI message vector (as a named list)
 #'
 #' @keywords internal
@@ -98,7 +99,10 @@ format_backend_error.codeminer_error <- function(e, res) {
   res$status <- 422
 
   list(
-    error_type = class(e)[1],
+    # Send the codeminer-specific class chain (drop the base R condition classes,
+    # which cli_abort re-adds client-side) so client errors mirror codeminer's
+    # native condition classes.
+    error_type = setdiff(class(e), c("rlang_error", "error", "condition")),
     # Extract original cli message specification vector - preserves "x", "i", "" names
     error_message = as.list(e$cli_message)
   )
