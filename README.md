@@ -60,6 +60,15 @@ resp_body_json(response)
 bg$kill()
 ```
 
+## Authenticated requests
+
+If the API server you are calling requires authentication, configure a
+strategy once per session (or via `CODEMINER_DEV_USER` for development
+servers) and the regular helpers attach the appropriate headers
+automatically. See `vignette("authenticated-requests")` for the full
+walkthrough, including how to plug in custom auth schemes via
+`auth_custom()`.
+
 ## Learn More
 
 See `vignette("codeminer.api")` for detailed documentation including:

@@ -12,7 +12,8 @@ N_CHILDREN(
   relationship_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 )
 }
 \arguments{
@@ -35,6 +36,11 @@ descriptions.}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as tibble.}
+
+\item{auth}{Authentication strategy (see \link{auth_strategies}). Defaults to
+\code{\link[=auth_current]{auth_current()}}, which resolves to the session-wide setting from
+\code{\link[=auth_use]{auth_use()}}, falling back to env-var-driven defaults via
+\code{\link[=default_auth]{default_auth()}}. See \code{vignette("authenticated-requests")}.}
 }
 \value{
 A data frame of codes and descriptions.

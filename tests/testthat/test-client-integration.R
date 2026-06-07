@@ -45,7 +45,10 @@ test_that("Client functions outputs match equivalent codeminer functions", {
 
   client_result <- DESCRIPTION(pattern = "asthma", type = "ICD-10") |>
     suppressMessages()
-  direct_result <- codeminer::DESCRIPTION(pattern = "asthma", type = "ICD-10") |>
+  direct_result <- codeminer::DESCRIPTION(
+    pattern = "asthma",
+    type = "ICD-10"
+  ) |>
     suppressMessages()
 
   expect_equal_results(client_result, direct_result)

@@ -6,7 +6,8 @@
 \usage{
 get_codeminer_metadata(
   type = c("lookup", "mapping", "relationship"),
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 )
 }
 \arguments{
@@ -15,6 +16,9 @@ more of \code{"lookup"}, \code{"mapping"}, \code{"relationship"}. Defaults to al
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as list of data frames.}
+
+\item{auth}{Authentication strategy (see \link{auth_strategies}). Defaults to
+\code{\link[=auth_current]{auth_current()}}; see \code{vignette("authenticated-requests")}.}
 }
 \value{
 If a single type is requested, a data frame. If multiple types are

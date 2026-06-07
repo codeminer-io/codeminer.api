@@ -226,22 +226,30 @@ codeminer_handler_factory <- function(f) {
 post_body_api_spec <- function(spec) {
   for (path_name in names(spec$paths)) {
     post <- spec$paths[[path_name]]$post
-    if (is.null(post)) next
+    if (is.null(post)) {
+      next
+    }
 
     params <- post$parameters
-    if (is.null(params) || length(params) == 0) next
+    if (is.null(params) || length(params) == 0) {
+      next
+    }
 
     properties <- list()
     required <- character()
 
     for (p in params) {
-      if (!identical(p[["in"]], "query")) next
+      if (!identical(p[["in"]], "query")) {
+        next
+      }
       properties[[p$name]] <- p$schema
       if (isTRUE(p$required)) required <- c(required, p$name)
     }
 
     schema <- list(type = "object", properties = properties)
-    if (length(required) > 0) schema$required <- as.list(required)
+    if (length(required) > 0) {
+      schema$required <- as.list(required)
+    }
 
     post$requestBody <- list(
       required = TRUE,

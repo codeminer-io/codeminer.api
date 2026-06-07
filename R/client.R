@@ -3,6 +3,10 @@
 #'   filters, `NULL` for no filtering, or a named list for custom filters.
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
+#' @param auth Authentication strategy (see [auth_strategies]). Defaults to
+#'   [auth_current()], which resolves to the session-wide setting from
+#'   [auth_use()], falling back to env-var-driven defaults via
+#'   [default_auth()]. See `vignette("authenticated-requests")`.
 #'
 #' @examples
 #' \dontrun{
@@ -18,7 +22,8 @@ DESCRIPTION <- function(
   ignore_case = TRUE,
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   body_params <- list(
     pattern = pattern,
@@ -32,7 +37,8 @@ DESCRIPTION <- function(
   api_request(
     endpoint = "/DESCRIPTION",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -52,7 +58,8 @@ CODES <- function(
   lookup_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -67,7 +74,8 @@ CODES <- function(
   api_request(
     endpoint = "/CODES",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -86,7 +94,8 @@ CODES_LIKE <- function(
   lookup_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   body_params <- list(
     pattern = pattern,
@@ -99,7 +108,8 @@ CODES_LIKE <- function(
   api_request(
     endpoint = "/CODES_LIKE",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -119,7 +129,8 @@ CHILDREN <- function(
   relationship_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -135,7 +146,8 @@ CHILDREN <- function(
   api_request(
     endpoint = "/CHILDREN",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -156,7 +168,8 @@ N_CHILDREN <- function(
   relationship_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -176,7 +189,8 @@ N_CHILDREN <- function(
   api_request(
     endpoint = "/N_CHILDREN",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -196,7 +210,8 @@ PARENTS <- function(
   relationship_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -212,7 +227,8 @@ PARENTS <- function(
   api_request(
     endpoint = "/PARENTS",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -233,7 +249,8 @@ N_PARENTS <- function(
   relationship_version = "latest",
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -252,7 +269,8 @@ N_PARENTS <- function(
   api_request(
     endpoint = "/N_PARENTS",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -273,7 +291,8 @@ ATTRIBUTES_FOR <- function(
   relationship_types = NULL,
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -295,7 +314,8 @@ ATTRIBUTES_FOR <- function(
   api_request(
     endpoint = "/ATTRIBUTES_FOR",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -316,7 +336,8 @@ HAS_ATTRIBUTES <- function(
   relationship_types = NULL,
   preferred_description_only = TRUE,
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -337,7 +358,8 @@ HAS_ATTRIBUTES <- function(
   api_request(
     endpoint = "/HAS_ATTRIBUTES",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -355,7 +377,8 @@ RELATIONSHIP_TYPES_FROM <- function(
   type = NULL,
   relationship_version = "latest",
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -369,7 +392,8 @@ RELATIONSHIP_TYPES_FROM <- function(
   api_request(
     endpoint = "/RELATIONSHIP_TYPES_FROM",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -387,7 +411,8 @@ RELATIONSHIP_TYPES_TO <- function(
   type = NULL,
   relationship_version = "latest",
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = type)
 
@@ -401,7 +426,8 @@ RELATIONSHIP_TYPES_TO <- function(
   api_request(
     endpoint = "/RELATIONSHIP_TYPES_TO",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -421,7 +447,8 @@ MAP <- function(
   map_version = "latest",
   lookup_version = "latest",
   col_filters = "default",
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   collected <- codeminer::collect_codes_input(..., type = from)
 
@@ -437,7 +464,8 @@ MAP <- function(
   api_request(
     endpoint = "/MAP",
     body_params = body_params,
-    .return_raw = .return_raw
+    .return_raw = .return_raw,
+    auth = auth
   )
 }
 
@@ -450,6 +478,8 @@ MAP <- function(
 #'   more of `"lookup"`, `"mapping"`, `"relationship"`. Defaults to all three.
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as list of data frames.
+#' @param auth Authentication strategy (see [auth_strategies]). Defaults to
+#'   [auth_current()]; see `vignette("authenticated-requests")`.
 #'
 #' @return If a single type is requested, a data frame. If multiple types are
 #'   requested, a named list of data frames.
@@ -470,7 +500,8 @@ MAP <- function(
 #' @export
 get_codeminer_metadata <- function(
   type = c("lookup", "mapping", "relationship"),
-  .return_raw = FALSE
+  .return_raw = FALSE,
+  auth = auth_current()
 ) {
   type <- match.arg(type, several.ok = TRUE)
 
@@ -481,7 +512,8 @@ get_codeminer_metadata <- function(
   response <- api_request(
     endpoint = "/metadata",
     query_params = query_params,
-    .return_raw = TRUE
+    .return_raw = TRUE,
+    auth = auth
   )
 
   if (.return_raw) {

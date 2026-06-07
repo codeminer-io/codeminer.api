@@ -26,8 +26,7 @@ test_that("capture_cm_condition() muffles warnings when restart is available", {
       triggered <<- TRUE
     },
     warning = capture_cm_condition("warnings", warn_env),
-    muffleWarning = function() {
-    }
+    muffleWarning = function() {}
   )
 
   # Condition captured
