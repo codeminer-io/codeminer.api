@@ -71,5 +71,6 @@ Other Clinical code lookups and mappings:
 \code{\link[codeminer]{MAP}()},
 \code{\link[codeminer]{get_lookup_table}()},
 \code{\link[codeminer]{get_mapping_table}()},
-\code{\link[codeminer]{get_relationship_table}()}
+\code{\link[codeminer]{get_relationship_table}()},
+\code{\link[codeminer]{get_relationship_tree}()}
 }

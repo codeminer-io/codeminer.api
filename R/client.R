@@ -469,6 +469,52 @@ MAP <- function(
   )
 }
 
+#' @inherit codeminer::get_relationship_tree
+#' @inheritParams DESCRIPTION
+#'
+#' @examples
+#' \dontrun{
+#' get_relationship_tree("E10", type = "icd10")
+#' }
+#'
+#' @export
+get_relationship_tree <- function(
+  codes,
+  type = NULL,
+  expand_to_descendants = TRUE,
+  max_codes = 10000,
+  relationship_version = "latest",
+  lookup_version = "latest",
+  col_filters = "default",
+  preferred_description_only = TRUE,
+  .return_raw = FALSE,
+  auth = auth_current()
+) {
+  body_params <- list(
+    codes = codes,
+    type = type,
+    expand_to_descendants = expand_to_descendants,
+    max_codes = max_codes,
+    relationship_version = relationship_version,
+    lookup_version = lookup_version,
+    col_filters = col_filters,
+    preferred_description_only = preferred_description_only
+  )
+
+  api_request(
+    endpoint = "/get_relationship_tree",
+    body_params = body_params,
+    .return_raw = .return_raw,
+    .parse_result = function(result) {
+      list(
+        nodes = tibble::as_tibble(result$nodes),
+        edges = tibble::as_tibble(result$edges)
+      )
+    },
+    auth = auth
+  )
+}
+
 #' Get CodeMiner database metadata
 #'
 #' Returns metadata about the lookup, mapping, and relationship tables

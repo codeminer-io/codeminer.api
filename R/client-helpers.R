@@ -31,6 +31,9 @@ validate_api_url <- function(url, call = rlang::caller_env()) {
 #'   When non-NULL, the request is sent as POST with a JSON body.
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
+#' @param .parse_result Optional function applied to the parsed `result` field
+#'   in place of the default tibble coercion. Use for endpoints whose result is
+#'   not a single codelist (e.g. `list(nodes, edges)`).
 #' @param auth Authentication strategy (see [auth_strategies]). Applied as
 #'   the final step before the request is performed, so strategies may
 #'   modify any aspect of the otherwise-built request.
@@ -43,6 +46,7 @@ api_request <- function(
   query_params = list(),
   body_params = NULL,
   .return_raw = FALSE,
+  .parse_result = NULL,
   auth = auth_current(),
   call = rlang::caller_env()
 ) {
@@ -119,6 +123,10 @@ api_request <- function(
 
   # Replay warnings/messages in client
   print_captured_warnings_and_messages(parsed)
+
+  if (!is.null(.parse_result)) {
+    return(.parse_result(parsed$result))
+  }
 
   result <- tibble::as_tibble(parsed$result)
 

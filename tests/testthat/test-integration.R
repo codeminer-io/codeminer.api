@@ -97,6 +97,41 @@ test_that("API endpoints respond correctly in background mode", {
   # MAP may return 200 even with empty results, or 422 if no mapping exists
   expect_true(httr2::resp_status(response_map) %in% c(200, 422))
 
+  # Test get_relationship_tree endpoint (POST) - happy path
+  response_tree <- httr2::request(
+    paste0(base_url, "/get_relationship_tree")
+  ) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
+      codes = "J45",
+      type = "ICD-10"
+    )) |>
+    httr2::req_perform()
+
+  expect_equal(httr2::resp_status(response_tree), 200)
+  tree_body <- httr2::resp_body_json(response_tree, simplifyVector = TRUE)
+  expect_true(all(c("nodes", "edges") %in% names(tree_body$result)))
+
+  # Over-limit abort surfaces as a clean 422, not a 500 stack trace
+  response_tree_over <- httr2::request(
+    paste0(base_url, "/get_relationship_tree")
+  ) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_json(list(
+      codes = c("J45", "E11"),
+      type = "ICD-10",
+      max_codes = 1
+    )) |>
+    httr2::req_error(is_error = \(resp) FALSE) |>
+    httr2::req_perform()
+
+  expect_equal(httr2::resp_status(response_tree_over), 422)
+  over_body <- httr2::resp_body_json(response_tree_over, simplifyVector = TRUE)
+  expect_equal(
+    over_body$error$error_type,
+    "codeminer_max_tree_codes_exceeded"
+  )
+
   # Test metadata endpoint (GET)
   response_meta <- httr2::request(paste0(base_url, "/metadata")) |>
     httr2::req_perform()

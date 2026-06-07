@@ -59,6 +59,12 @@ test_endpoint_addition(
 test_endpoint_addition(add_map_endpoint, "add_map_endpoint", "/MAP")
 
 test_endpoint_addition(
+  add_get_relationship_tree_endpoint,
+  "add_get_relationship_tree_endpoint",
+  "/get_relationship_tree"
+)
+
+test_endpoint_addition(
   add_metadata_endpoint,
   "add_metadata_endpoint",
   "/metadata"
