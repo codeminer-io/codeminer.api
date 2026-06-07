@@ -184,13 +184,28 @@ test_that("Client functions outputs match equivalent codeminer functions", {
   expect_equal_results(client_tree$nodes, direct_tree$nodes)
   expect_equal_results(client_tree$edges, direct_tree$edges)
 
-  # Over-limit abort propagates as a classed client-side error
-  expect_error(
+  # Over-limit abort propagates with the same condition class chain as the
+  # native codeminer error, so user error-handling code works against either.
+  client_err <- rlang::catch_cnd(
     get_relationship_tree(c("J45", "E11"), type = "ICD-10", max_codes = 1) |>
       suppressMessages() |>
       suppressWarnings(),
-    class = "codeminer_max_tree_codes_exceeded"
+    classes = "error"
   )
+  direct_err <- rlang::catch_cnd(
+    codeminer::get_relationship_tree(
+      c("J45", "E11"),
+      type = "ICD-10",
+      max_codes = 1
+    ) |>
+      suppressMessages() |>
+      suppressWarnings(),
+    classes = "error"
+  )
+
+  expect_s3_class(client_err, "codeminer_max_tree_codes_exceeded")
+  expect_s3_class(client_err, "codeminer_error")
+  expect_equal(class(client_err), class(direct_err))
 
   # ---- get_codeminer_metadata() -----------
 

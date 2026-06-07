@@ -85,12 +85,13 @@ api_request <- function(
       # Replay warnings/messages locally
       print_captured_warnings_and_messages(parsed)
 
-      # Raise a structured CLI error
+      # Raise a structured CLI error, mirroring codeminer's native condition
+      # class chain (cli_abort re-adds the base rlang_error/error/condition).
       cli::cli_abort(
         c(
           convert_captured_message_to_cli_message_vector(error_list)
         ),
-        class = parsed$error$error_type[[1]],
+        class = unlist(parsed$error$error_type),
         call = call
       )
     },
