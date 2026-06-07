@@ -430,6 +430,46 @@ add_map_endpoint <- function(pr) {
   pr
 }
 
+#' Add get_relationship_tree endpoint to API router
+#'
+#' Adds a POST endpoint at `/get_relationship_tree` that wraps
+#' `codeminer::get_relationship_tree()`. Returns a `list(nodes, edges)` for the
+#' (optionally descendant-expanded) code set.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_get_relationship_tree_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/get_relationship_tree",
+    handler = codeminer_handler_factory(
+      function(
+        codes,
+        type = NULL,
+        expand_to_descendants = TRUE,
+        max_codes = 10000,
+        relationship_version = "latest",
+        lookup_version = "latest",
+        col_filters = "default",
+        preferred_description_only = TRUE
+      ) {
+        codeminer::get_relationship_tree(
+          codes,
+          type = type,
+          expand_to_descendants = expand_to_descendants,
+          max_codes = max_codes,
+          relationship_version = relationship_version,
+          lookup_version = lookup_version,
+          col_filters = col_filters,
+          preferred_description_only = preferred_description_only
+        )
+      }
+    )
+  )
+  pr
+}
+
 #' Add metadata endpoint to API router
 #'
 #' Adds a GET endpoint at `/metadata` that wraps

@@ -171,6 +171,27 @@ test_that("Client functions outputs match equivalent codeminer functions", {
 
   expect_equal_results(client_result, direct_result)
 
+  # ---- get_relationship_tree() -----------
+
+  client_tree <- get_relationship_tree("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_tree <- codeminer::get_relationship_tree("J45", type = "ICD-10") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal(names(client_tree), names(direct_tree))
+  expect_equal_results(client_tree$nodes, direct_tree$nodes)
+  expect_equal_results(client_tree$edges, direct_tree$edges)
+
+  # Over-limit abort propagates as a classed client-side error
+  expect_error(
+    get_relationship_tree(c("J45", "E11"), type = "ICD-10", max_codes = 1) |>
+      suppressMessages() |>
+      suppressWarnings(),
+    class = "codeminer_max_tree_codes_exceeded"
+  )
+
   # ---- get_codeminer_metadata() -----------
 
   # All metadata

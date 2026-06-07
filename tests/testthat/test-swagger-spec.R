@@ -15,7 +15,8 @@ test_that("post_body_api_spec converts POST query params to requestBody", {
     "/HAS_ATTRIBUTES",
     "/RELATIONSHIP_TYPES_FROM",
     "/RELATIONSHIP_TYPES_TO",
-    "/MAP"
+    "/MAP",
+    "/get_relationship_tree"
   )
 
   for (path in post_paths) {
