@@ -244,7 +244,7 @@ test_that("Client functions outputs match equivalent codeminer functions", {
   expect_s3_class(client_err, "codeminer_error")
   expect_equal(class(client_err), class(direct_err))
 
-  # ---- Ask A: type-dimension functions error on a hierarchy-only type -------
+  # ---- type-dimension functions error on a hierarchy-only type --------------
   # The server-side abort must propagate to the client with its class chain.
   client_err <- rlang::catch_cnd(
     RELATIONSHIP_TYPES_FROM("E10", type = "ICD-10") |>
