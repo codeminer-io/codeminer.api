@@ -8,8 +8,8 @@ test_that("create_codeminer_api creates router with all endpoints", {
   routes <- pr$routes
   expect_true(length(routes) > 0)
 
-  # Should have 15 endpoints: health + 13 codeminer functions + metadata
-  expect_equal(length(routes), 15)
+  # Should have 16 endpoints: health + 14 codeminer functions + metadata
+  expect_equal(length(routes), 16)
 
   # Verify specific endpoint paths exist
   paths <- vapply(routes, function(route) route$path, character(1))
@@ -25,6 +25,7 @@ test_that("create_codeminer_api creates router with all endpoints", {
   expect_true("/HAS_ATTRIBUTES" %in% paths)
   expect_true("/RELATIONSHIP_TYPES_FROM" %in% paths)
   expect_true("/RELATIONSHIP_TYPES_TO" %in% paths)
+  expect_true("/RELATIONSHIP_TYPES" %in% paths)
   expect_true("/MAP" %in% paths)
   expect_true("/get_relationship_tree" %in% paths)
   expect_true("/metadata" %in% paths)

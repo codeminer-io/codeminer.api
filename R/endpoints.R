@@ -351,12 +351,16 @@ add_relationship_types_from_endpoint <- function(pr) {
         codes,
         type = NULL,
         relationship_version = "latest",
+        lookup_version = "latest",
+        preferred_description_only = TRUE,
         col_filters = "default"
       ) {
         codeminer::RELATIONSHIP_TYPES_FROM(
           codes,
           type = type,
           relationship_version = relationship_version,
+          lookup_version = lookup_version,
+          preferred_description_only = preferred_description_only,
           col_filters = col_filters
         )
       }
@@ -382,12 +386,54 @@ add_relationship_types_to_endpoint <- function(pr) {
         codes,
         type = NULL,
         relationship_version = "latest",
+        lookup_version = "latest",
+        preferred_description_only = TRUE,
         col_filters = "default"
       ) {
         codeminer::RELATIONSHIP_TYPES_TO(
           codes,
           type = type,
           relationship_version = relationship_version,
+          lookup_version = lookup_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add RELATIONSHIP_TYPES endpoint to API router
+#'
+#' Adds a POST endpoint at `/RELATIONSHIP_TYPES` that wraps
+#' `codeminer::RELATIONSHIP_TYPES()` — lists the relationship types in a code
+#' type's relationship table, optionally filtered by a description `pattern`.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_relationship_types_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/RELATIONSHIP_TYPES",
+    handler = codeminer_handler_factory(
+      function(
+        pattern = NULL,
+        type = NULL,
+        relationship_version = "latest",
+        lookup_version = "latest",
+        ignore_case = TRUE,
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::RELATIONSHIP_TYPES(
+          pattern = pattern,
+          type = type,
+          relationship_version = relationship_version,
+          lookup_version = lookup_version,
+          ignore_case = ignore_case,
+          preferred_description_only = preferred_description_only,
           col_filters = col_filters
         )
       }

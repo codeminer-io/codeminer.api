@@ -376,6 +376,8 @@ RELATIONSHIP_TYPES_FROM <- function(
   ...,
   type = NULL,
   relationship_version = "latest",
+  lookup_version = "latest",
+  preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
   auth = auth_current()
@@ -386,6 +388,8 @@ RELATIONSHIP_TYPES_FROM <- function(
     codes = collected$codes,
     type = collected$code_type %||% type,
     relationship_version = relationship_version,
+    lookup_version = lookup_version,
+    preferred_description_only = preferred_description_only,
     col_filters = col_filters
   )
 
@@ -410,6 +414,8 @@ RELATIONSHIP_TYPES_TO <- function(
   ...,
   type = NULL,
   relationship_version = "latest",
+  lookup_version = "latest",
+  preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
   auth = auth_current()
@@ -420,11 +426,52 @@ RELATIONSHIP_TYPES_TO <- function(
     codes = collected$codes,
     type = collected$code_type %||% type,
     relationship_version = relationship_version,
+    lookup_version = lookup_version,
+    preferred_description_only = preferred_description_only,
     col_filters = col_filters
   )
 
   api_request(
     endpoint = "/RELATIONSHIP_TYPES_TO",
+    body_params = body_params,
+    .return_raw = .return_raw,
+    auth = auth
+  )
+}
+
+#' @inherit codeminer::RELATIONSHIP_TYPES
+#' @inheritParams DESCRIPTION
+#'
+#' @examples
+#' \dontrun{
+#' RELATIONSHIP_TYPES(type = "sct")
+#' RELATIONSHIP_TYPES("finding site", type = "sct")
+#' }
+#'
+#' @export
+RELATIONSHIP_TYPES <- function(
+  pattern = NULL,
+  type = NULL,
+  relationship_version = "latest",
+  lookup_version = "latest",
+  ignore_case = TRUE,
+  preferred_description_only = TRUE,
+  col_filters = "default",
+  .return_raw = FALSE,
+  auth = auth_current()
+) {
+  body_params <- list(
+    pattern = pattern,
+    type = type,
+    relationship_version = relationship_version,
+    lookup_version = lookup_version,
+    ignore_case = ignore_case,
+    preferred_description_only = preferred_description_only,
+    col_filters = col_filters
+  )
+
+  api_request(
+    endpoint = "/RELATIONSHIP_TYPES",
     body_params = body_params,
     .return_raw = .return_raw,
     auth = auth
