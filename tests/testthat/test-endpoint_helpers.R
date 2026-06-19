@@ -1,21 +1,58 @@
-test_that("capture_cm_condition() extracts messages correctly", {
+test_that("capture_cm_condition() captures a structured object", {
   warn_env <- new.env(parent = emptyenv())
-  warn_env$warnings <- character()
+  warn_env$warnings <- list()
 
-  # Fake CodeMiner warning with cli_message
+  # Fake CodeMiner warning with cli_message (bare warning -> empty type)
   cnd <- structure(
     list(cli_message = "interpolated"),
-    class = c("codeminer_warning", "warning", "condition")
+    class = c("codeminer_warning", "rlang_warning", "warning", "condition")
   )
 
   capture_cm_condition("warnings", warn_env)(cnd)
 
-  expect_identical(warn_env$warnings, list(list("-" = "interpolated")))
+  expect_identical(
+    warn_env$warnings,
+    list(list(type = character(0), message = list("-" = "interpolated")))
+  )
+})
+
+test_that("capture_cm_condition() preserves subclass and data fields", {
+  warn_env <- new.env(parent = emptyenv())
+  warn_env$warnings <- list()
+
+  # Mirrors codeminer::missing_codes_warning(): a subclassed warning carrying
+  # structured data fields.
+  cnd <- structure(
+    list(
+      cli_message = c("!" = "Codes not found", "*" = "ZZ9"),
+      missing_codes = c("ZZ9", "YY8"),
+      table_type = "lookup",
+      table_meta = list(name = "x")
+    ),
+    class = c(
+      "codeminer_missing_codes",
+      "codeminer_warning",
+      "rlang_warning",
+      "warning",
+      "condition"
+    )
+  )
+
+  capture_cm_condition("warnings", warn_env)(cnd)
+
+  captured <- warn_env$warnings[[1]]
+  # type drops the base classes, mirroring error_type
+  expect_identical(captured$type, "codeminer_missing_codes")
+  expect_identical(captured$message, list("!" = "Codes not found", "*" = "ZZ9"))
+  # data fields carried through
+  expect_identical(captured$missing_codes, c("ZZ9", "YY8"))
+  expect_identical(captured$table_type, "lookup")
+  expect_identical(captured$table_meta, list(name = "x"))
 })
 
 test_that("capture_cm_condition() muffles warnings when restart is available", {
   warn_env <- new.env(parent = emptyenv())
-  warn_env$warnings <- character()
+  warn_env$warnings <- list()
 
   triggered <- FALSE
 
@@ -29,8 +66,14 @@ test_that("capture_cm_condition() muffles warnings when restart is available", {
     muffleWarning = function() {}
   )
 
-  # Condition captured
-  expect_identical(warn_env$warnings, list(c("-" = "base test warning")))
+  # Condition captured (base R warning -> "simpleWarning" survives the setdiff)
+  expect_identical(
+    warn_env$warnings,
+    list(list(
+      type = "simpleWarning",
+      message = list("-" = "base test warning")
+    ))
+  )
 
   # The underlying warning was silenced
   expect_false(triggered)
@@ -79,8 +122,10 @@ test_that("codeminer_handle captures codeminer_message conditions", {
   output <- codeminer_handle(expr(), res)
 
   expect_equal(output$result, "OK")
+  # skip the N-messages count entry; message text under $message
+  expect_equal(output$messages[[2]]$type, character(0))
   expect_equal(
-    output$messages[[2]], # skip N-messages entry
+    output$messages[[2]]$message,
     list("i" = "Hello", "i" = "World")
   )
 })
@@ -99,10 +144,49 @@ test_that("codeminer_handle captures codeminer_warning conditions", {
   output <- codeminer_handle(expr(), res)
 
   expect_equal(output$result, "OK")
+  expect_equal(output$warnings[[2]]$type, character(0))
   expect_equal(
-    output$warnings[[2]],
+    output$warnings[[2]]$message,
     list("!" = "W1", "!" = "W2")
   )
+})
+
+test_that("codeminer_handle captures a subclassed warning with data fields", {
+  expr <- function() {
+    cli::cli_warn(
+      c("!" = "Codes not found"),
+      class = c("codeminer_missing_codes", "codeminer_warning"),
+      cli_message = c("!" = "Codes not found"),
+      missing_codes = c("ZZ9", "YY8"),
+      table_type = "lookup"
+    )
+    "OK"
+  }
+
+  res <- new.env()
+  output <- codeminer_handle(expr(), res)
+
+  captured <- output$warnings[[2]]
+  expect_equal(captured$type, "codeminer_missing_codes")
+  expect_equal(captured$message, list("!" = "Codes not found"))
+  expect_equal(captured$missing_codes, c("ZZ9", "YY8"))
+  expect_equal(captured$table_type, "lookup")
+})
+
+test_that("codeminer_handle ignores base R warnings and messages", {
+  expr <- function() {
+    warning("a base R warning")
+    message("a base R message")
+    "OK"
+  }
+
+  res <- new.env()
+  output <- suppressWarnings(suppressMessages(codeminer_handle(expr(), res)))
+
+  expect_equal(output$result, "OK")
+  # only the count element remains - base conditions are not captured
+  expect_equal(output$warnings, list("Warnings: 0"))
+  expect_equal(output$messages, list("Messages: 0"))
 })
 
 test_that("codeminer_handle captures codeminer_error", {

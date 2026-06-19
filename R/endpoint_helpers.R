@@ -13,8 +13,11 @@
 #' - **Expected user-facing CodeMiner errors** raised via [codeminer::codeminer_abort()]
 #'   -> handled by `format_backend_error.codeminer_error()`
 #'
-#' Warnings and messages are handled separately by `codeminer_handle()`, but
-#' only if they have class `codeminer_warning` or `codeminer_message`. Base R
+#' Warnings and messages are handled separately by `codeminer_handle()` (via
+#' `capture_cm_condition()`), but only if they have class `codeminer_warning` or
+#' `codeminer_message`. They are captured as structured objects with the same
+#' shape as errors (class chain + message + data fields), so clients can
+#' distinguish warning types and read structured fields. Base R
 #' warnings/messages are not captured and never exposed to the client.
 #'
 #' @param e A condition object passed from the API handler.
@@ -108,15 +111,32 @@ format_backend_error.codeminer_error <- function(e, res) {
   )
 }
 
-#' Capture a condition's text for warnings/messages
+#' Capture a codeminer warning/message as a structured object
 #'
-#' Internal helper that extracts a codeminer CLI-formatted message
-#' (`cli_message`) condition message. Used by the API
-#' handler to collect codeminer warnings and messages uniformly.
+#' Internal helper used by `codeminer_handle()` to collect codeminer warnings
+#' and messages. Each condition is captured with the same structure the error
+#' path uses, so API clients receive warnings with the same shape as errors:
+#'
+#' - `type` — the codeminer-specific class chain (base condition classes
+#'   dropped), mirroring `error_type`. Empty for a bare `codeminer_warning` /
+#'   `codeminer_message`; the client re-adds the base class.
+#' - `message` — the stored `cli_message` vector (or `conditionMessage()`),
+#'   named for faithful bullet round-trip, mirroring `error_message`.
+#' - any of the condition's own data fields (`missing_codes`, `table_type`,
+#'   `table_meta`) that are present, so structured fields survive to the client.
 #'
 #' @keywords internal
 #' @noRd
 capture_cm_condition <- function(target, warn_env) {
+  # Base classes the client re-adds (cli_warn/cli_inform rebuild these), so the
+  # wire format carries only the codeminer-specific subclasses - symmetric with
+  # `error_type` dropping the base rlang_error/error/condition classes.
+  base_classes <- if (target == "warnings") {
+    c("codeminer_warning", "rlang_warning", "warning", "condition")
+  } else {
+    c("codeminer_message", "rlang_message", "message", "condition")
+  }
+
   function(cnd) {
     msg <- if (!is.null(cnd$cli_message)) {
       cnd$cli_message |>
@@ -124,14 +144,23 @@ capture_cm_condition <- function(target, warn_env) {
         as.list()
     } else {
       conditionMessage(cnd) |>
-        set_missing_names()
+        set_missing_names() |>
+        as.list()
     }
 
-    warn_env[[target]] <- if (rlang::is_empty(warn_env[[target]])) {
-      list(msg)
-    } else {
-      c(warn_env[[target]], list(msg))
+    captured <- list(
+      type = setdiff(class(cnd), base_classes),
+      message = msg
+    )
+
+    # Carry the condition's own structured data fields when present.
+    for (field in c("missing_codes", "table_type", "table_meta")) {
+      if (!is.null(cnd[[field]])) {
+        captured[[field]] <- cnd[[field]]
+      }
     }
+
+    warn_env[[target]] <- c(warn_env[[target]], list(captured))
 
     # muffle if restart exists
     restart <- if (target == "warnings") "muffleWarning" else "muffleMessage"
@@ -172,7 +201,11 @@ codeminer_handle <- function(expr, res) {
     "result"
   )
 
-  # response body will be a list with items result/error, warnings, messages
+  # response body will be a list with items result/error, warnings, messages.
+  # Each warnings/messages entry is a structured object (type, message, optional
+  # data fields - see capture_cm_condition()). The leading "Warnings: N" count
+  # string is load-bearing: it keeps the array heterogeneous so the client's
+  # simplifyVector = TRUE parse does not collapse the objects into a data frame.
   c(
     stats::setNames(list(unclass(response_body)), result_or_error_name),
     list(

@@ -652,13 +652,15 @@ test_conditions <- function(
   message_class = "codeminer_message",
   warning_class = "codeminer_warning",
   error_class = "codeminer_error",
-  error = TRUE
+  error = TRUE,
+  structured_warning = FALSE
 ) {
   query_params <- list(
     message_class = message_class,
     warning_class = warning_class,
     error_class = error_class,
-    error = error
+    error = error,
+    structured_warning = structured_warning
   )
 
   api_request(
