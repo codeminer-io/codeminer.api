@@ -7,7 +7,12 @@ test_that("Client functions outputs match equivalent codeminer functions", {
 
   # Database is set up by tests/testthat/setup.R
 
-  # Start API in background
+  # Start API in background.
+  # NOTE: the background server runs the *installed* codeminer.api (it loads the
+  # package in a fresh R session via callr), NOT `devtools::load_all()` source.
+  # If you change an endpoint/client and these tests behave oddly (e.g. a new
+  # endpoint 404s), reinstall the package first: `R CMD INSTALL .` or
+  # `devtools::install()`. See `run_codeminer_api()` for details.
   bg <- run_codeminer_api(
     host = "127.0.0.1",
     port = 8891,
@@ -117,11 +122,13 @@ test_that("Client functions outputs match equivalent codeminer functions", {
   expect_equal_results(client_result, direct_result)
 
   # ---- ATTRIBUTES_FOR() -----------
+  # Type-dimension functions need a multi-type relationship table (`api_multi`,
+  # set up in setup.R); they are not applicable to purely hierarchical systems.
 
-  client_result <- ATTRIBUTES_FOR("J45", type = "ICD-10") |>
+  client_result <- ATTRIBUTES_FOR("disorder", type = "api_multi") |>
     suppressMessages() |>
     suppressWarnings()
-  direct_result <- codeminer::ATTRIBUTES_FOR("J45", type = "ICD-10") |>
+  direct_result <- codeminer::ATTRIBUTES_FOR("disorder", type = "api_multi") |>
     suppressMessages() |>
     suppressWarnings()
 
@@ -129,10 +136,10 @@ test_that("Client functions outputs match equivalent codeminer functions", {
 
   # ---- HAS_ATTRIBUTES() -----------
 
-  client_result <- HAS_ATTRIBUTES("J45", type = "ICD-10") |>
+  client_result <- HAS_ATTRIBUTES("finding", type = "api_multi") |>
     suppressMessages() |>
     suppressWarnings()
-  direct_result <- codeminer::HAS_ATTRIBUTES("J45", type = "ICD-10") |>
+  direct_result <- codeminer::HAS_ATTRIBUTES("finding", type = "api_multi") |>
     suppressMessages() |>
     suppressWarnings()
 
@@ -140,10 +147,13 @@ test_that("Client functions outputs match equivalent codeminer functions", {
 
   # ---- RELATIONSHIP_TYPES_FROM() -----------
 
-  client_result <- RELATIONSHIP_TYPES_FROM("J45", type = "ICD-10") |>
+  client_result <- RELATIONSHIP_TYPES_FROM("disorder", type = "api_multi") |>
     suppressMessages() |>
     suppressWarnings()
-  direct_result <- codeminer::RELATIONSHIP_TYPES_FROM("J45", type = "ICD-10") |>
+  direct_result <- codeminer::RELATIONSHIP_TYPES_FROM(
+    "disorder",
+    type = "api_multi"
+  ) |>
     suppressMessages() |>
     suppressWarnings()
 
@@ -151,10 +161,37 @@ test_that("Client functions outputs match equivalent codeminer functions", {
 
   # ---- RELATIONSHIP_TYPES_TO() -----------
 
-  client_result <- RELATIONSHIP_TYPES_TO("J45", type = "ICD-10") |>
+  client_result <- RELATIONSHIP_TYPES_TO("finding", type = "api_multi") |>
     suppressMessages() |>
     suppressWarnings()
-  direct_result <- codeminer::RELATIONSHIP_TYPES_TO("J45", type = "ICD-10") |>
+  direct_result <- codeminer::RELATIONSHIP_TYPES_TO(
+    "finding",
+    type = "api_multi"
+  ) |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # ---- RELATIONSHIP_TYPES() -----------
+
+  client_result <- RELATIONSHIP_TYPES(type = "api_multi") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::RELATIONSHIP_TYPES(type = "api_multi") |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_equal_results(client_result, direct_result)
+
+  # With a description pattern
+  client_result <- RELATIONSHIP_TYPES("finding site", type = "api_multi") |>
+    suppressMessages() |>
+    suppressWarnings()
+  direct_result <- codeminer::RELATIONSHIP_TYPES(
+    "finding site",
+    type = "api_multi"
+  ) |>
     suppressMessages() |>
     suppressWarnings()
 
@@ -207,6 +244,25 @@ test_that("Client functions outputs match equivalent codeminer functions", {
   expect_s3_class(client_err, "codeminer_error")
   expect_equal(class(client_err), class(direct_err))
 
+  # ---- type-dimension functions error on a hierarchy-only type --------------
+  # The server-side abort must propagate to the client with its class chain.
+  client_err <- rlang::catch_cnd(
+    RELATIONSHIP_TYPES_FROM("E10", type = "ICD-10") |>
+      suppressMessages() |>
+      suppressWarnings(),
+    classes = "error"
+  )
+  direct_err <- rlang::catch_cnd(
+    codeminer::RELATIONSHIP_TYPES_FROM("E10", type = "ICD-10") |>
+      suppressMessages() |>
+      suppressWarnings(),
+    classes = "error"
+  )
+
+  expect_s3_class(client_err, "codeminer_no_relationship_types")
+  expect_s3_class(client_err, "codeminer_error")
+  expect_equal(class(client_err), class(direct_err))
+
   # ---- get_codeminer_metadata() -----------
 
   # All metadata
@@ -220,6 +276,14 @@ test_that("Client functions outputs match equivalent codeminer functions", {
       purrr::map_df(direct_meta[[nm]], as.character)
     )
   }
+
+  # A purely hierarchical relationship table has NA type fields. These must
+  # survive the JSON round-trip as NA (serialised as `null`, not dropped).
+  icd10_rel <- client_meta$relationship[
+    client_meta$relationship$code_type == "ICD-10",
+  ]
+  expect_true(is.na(icd10_rel$type_col))
+  expect_true(is.na(icd10_rel$child_parent_relationship_code))
 
   # Single type
   client_lookup <- get_codeminer_metadata("lookup")

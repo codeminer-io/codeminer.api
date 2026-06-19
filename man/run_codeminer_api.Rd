@@ -58,6 +58,17 @@ intentionally not loaded in the background process, so the value you set
 via \code{Sys.setenv()} in your interactive session always takes precedence.
 }
 
+\section{Background mode runs the installed package}{
+
+With \code{background = TRUE} the server runs in a fresh R session (via
+\code{\link[callr:r_bg]{callr::r_bg()}}) that loads the \strong{installed} \code{codeminer.api} — it does not
+pick up \code{devtools::load_all()} or other uninstalled source edits. After
+changing an endpoint or the router, reinstall (\verb{R CMD INSTALL .} /
+\code{devtools::install()}) before the change takes effect in background mode.
+This is also why integration tests that drive a background server test the
+installed build; CI installs the package first, so it is unaffected.
+}
+
 \examples{
 \dontrun{
 # Start in foreground (blocks until Ctrl+C)

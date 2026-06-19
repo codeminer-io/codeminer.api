@@ -2,12 +2,14 @@
 % Please edit documentation in R/client.R
 \name{RELATIONSHIP_TYPES_FROM}
 \alias{RELATIONSHIP_TYPES_FROM}
-\title{Get relationship types for codes}
+\title{Relationship types}
 \usage{
 RELATIONSHIP_TYPES_FROM(
   ...,
   type = NULL,
   relationship_version = "latest",
+  lookup_version = "latest",
+  preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
   auth = auth_current()
@@ -20,6 +22,11 @@ RELATIONSHIP_TYPES_FROM(
 
 \item{relationship_version}{Relationship table version (character).}
 
+\item{lookup_version}{Lookup table version (character).}
+
+\item{preferred_description_only}{Logical. If \code{TRUE}, return only preferred
+descriptions.}
+
 \item{col_filters}{Column filters to apply. See \code{\link[codeminer:CODES]{CODES()}} for details.}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
@@ -31,17 +38,28 @@ If \code{FALSE} (default), parse JSON and return as tibble.}
 \code{\link[=default_auth]{default_auth()}}. See \code{vignette("authenticated-requests")}.}
 }
 \value{
-A character vector of distinct relationship types.
+A \code{codeminer_codelist} of relationship types with their
+descriptions.
 }
 \description{
-These functions return the distinct relationship types that originate from or
-point to the supplied codes.
+Return relationship types as a \code{codeminer_codelist}, with each
+type's description looked up from the lookup table where available.
 }
 \details{
 \itemize{
-\item \code{RELATIONSHIP_TYPES_FROM()} returns relationship types originating from codes
-\item \code{RELATIONSHIP_TYPES_TO()} returns relationship types pointing to codes
+\item \code{RELATIONSHIP_TYPES_FROM()} - types originating from the supplied codes.
+\item \code{RELATIONSHIP_TYPES_TO()} - types pointing to the supplied codes.
+\item \code{RELATIONSHIP_TYPES()} - all types in a code type's relationship table,
+optionally filtered by a description \code{pattern} (like \code{\link[codeminer:DESCRIPTION]{DESCRIPTION()}}).
 }
+
+Relationship types are themselves codes (e.g. a SNOMED CT relationship type
+is a concept id), so they are described via the lookup table. A type with no
+matching lookup entry falls back to using its own value as the description.
+
+These functions are not applicable to purely hierarchical relationship
+tables (those with no type column); they error in that case. Use \code{\link[codeminer:CHILDREN]{CHILDREN()}}
+/ \code{\link[codeminer:PARENTS]{PARENTS()}} to traverse a hierarchy.
 }
 \examples{
 \dontrun{

@@ -117,6 +117,15 @@ run_codeminer_api_foreground <- function(
 #' intentionally not loaded in the background process, so the value you set
 #' via `Sys.setenv()` in your interactive session always takes precedence.
 #'
+#' @section Background mode runs the installed package:
+#' With `background = TRUE` the server runs in a fresh R session (via
+#' [callr::r_bg()]) that loads the **installed** `codeminer.api` — it does not
+#' pick up `devtools::load_all()` or other uninstalled source edits. After
+#' changing an endpoint or the router, reinstall (`R CMD INSTALL .` /
+#' `devtools::install()`) before the change takes effect in background mode.
+#' This is also why integration tests that drive a background server test the
+#' installed build; CI installs the package first, so it is unaffected.
+#'
 #' @examples
 #' \dontrun{
 #' # Start in foreground (blocks until Ctrl+C)
@@ -162,7 +171,16 @@ run_codeminer_api <- function(
       ))
     }
 
-    # Run in background process by calling the foreground function
+    # Run in background process by calling the foreground function.
+    #
+    # IMPORTANT (dev gotcha): this child process is a fresh R session that loads
+    # the *installed* codeminer.api via `codeminer.api::` — it does NOT see
+    # `devtools::load_all()` / uninstalled source changes. So the API it serves
+    # is whatever was last `R CMD INSTALL`-ed, even if you've edited the package
+    # since. Integration tests that drive a background server (e.g.
+    # `test-client-integration.R`) therefore test the INSTALLED build: reinstall
+    # the package before running them, or they silently exercise stale code.
+    # CI is unaffected because it installs the package before testing.
     bg <- callr::r_bg(
       func = function(host, port, docs, quiet, ...) {
         # Call the foreground function (which does validation, builds router, runs API)

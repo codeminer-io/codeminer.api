@@ -30,6 +30,7 @@ create_codeminer_api <- function() {
   pr <- add_has_attributes_endpoint(pr)
   pr <- add_relationship_types_from_endpoint(pr)
   pr <- add_relationship_types_to_endpoint(pr)
+  pr <- add_relationship_types_endpoint(pr)
   pr <- add_map_endpoint(pr)
   pr <- add_get_relationship_tree_endpoint(pr)
   pr <- add_metadata_endpoint(pr)
