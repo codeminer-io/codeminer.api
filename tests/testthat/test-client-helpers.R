@@ -266,8 +266,14 @@ test_that("convert_captured_message_to_cli_message_vector recreates cli vector",
 })
 
 test_that("client replays warnings and messages via CLI", {
-  messages <- list("Messages: 1", list("i" = "one"))
-  warnings <- list("Warnings: 1", list("!" = "two"))
+  messages <- list(
+    "Messages: 1",
+    list(type = character(0), message = list("i" = "one"))
+  )
+  warnings <- list(
+    "Warnings: 1",
+    list(type = character(0), message = list("!" = "two"))
+  )
 
   withr::local_options(cli.default_handler = cli::cli_sitrep)
 
@@ -277,4 +283,29 @@ test_that("client replays warnings and messages via CLI", {
       warnings = warnings
     ))
   )
+})
+
+test_that("client re-raises warnings with class chain and data fields", {
+  # Structured wire format with a subclassed warning carrying data fields.
+  warnings <- list(
+    "Warnings: 1",
+    list(
+      type = "codeminer_missing_codes",
+      message = list("!" = "Codes not found", "*" = "ZZ9"),
+      missing_codes = c("ZZ9", "YY8"),
+      table_type = "lookup"
+    )
+  )
+
+  w <- rlang::catch_cnd(
+    print_captured_warnings_and_messages(list(warnings = warnings)),
+    classes = "warning"
+  )
+
+  # Full class chain reconstructed (base codeminer_warning re-added client-side)
+  expect_s3_class(w, "codeminer_missing_codes")
+  expect_s3_class(w, "codeminer_warning")
+  # Data fields reattached to the condition
+  expect_identical(w$missing_codes, c("ZZ9", "YY8"))
+  expect_identical(w$table_type, "lookup")
 })

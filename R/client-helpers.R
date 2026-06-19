@@ -188,24 +188,39 @@ check_api_connection <- function(
 }
 
 print_captured_warnings_and_messages <- function(resp) {
-  # discard first item in both cases - this just records N warnings/messages
+  # Drop the leading "Warnings: N" / "Messages: N" count element, then replay
+  # each captured condition with its class chain and data fields - mirroring how
+  # errors round-trip, so an R client sees the same condition classes as a
+  # direct codeminer call.
   if (length(resp$warnings)) {
-    resp$warnings <- resp$warning[-1] |>
-      purrr::map(convert_captured_message_to_cli_message_vector)
-
-    for (w in resp$warnings) {
-      cli::cli_warn(message = w)
+    for (w in resp$warnings[-1]) {
+      replay_captured_condition(w, "codeminer_warning", cli::cli_warn)
     }
   }
   if (length(resp$messages)) {
-    resp$messages <-
-      resp$messages[-1] |>
-      purrr::map(convert_captured_message_to_cli_message_vector)
-
-    for (m in resp$messages) {
-      cli::cli_inform(message = m)
+    for (m in resp$messages[-1]) {
+      replay_captured_condition(m, "codeminer_message", cli::cli_inform)
     }
   }
+}
+
+#' Re-raise a captured warning/message client-side
+#'
+#' Rebuilds a codeminer condition from its structured wire representation
+#' (`type`, `message`, optional data fields) and re-raises it via `emit`
+#' (`cli::cli_warn` or `cli::cli_inform`). The base codeminer class
+#' (`base_class`) is re-added to the server-sent `type`, and data fields are
+#' passed through as `...` so they reattach to the condition - symmetric with
+#' the error path's `cli::cli_abort(..., class = error_type)`.
+#'
+#' @keywords internal
+#' @noRd
+replay_captured_condition <- function(captured, base_class, emit) {
+  msg <- convert_captured_message_to_cli_message_vector(captured$message)
+  cnd_class <- c(unlist(captured$type, use.names = FALSE), base_class)
+  fields <- captured[setdiff(names(captured), c("type", "message"))]
+
+  rlang::exec(emit, message = msg, class = cnd_class, !!!fields)
 }
 
 convert_captured_message_to_cli_message_vector <- function(captured_message) {

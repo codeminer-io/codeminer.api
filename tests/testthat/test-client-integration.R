@@ -531,6 +531,42 @@ test_that("messages propagate identically", {
     conditionMessage(messagess_server),
     conditionMessage(messagess_client)
   )
+
+  # ----- Structured warnings round-trip like errors -----------------
+  # A subclassed codeminer warning must reach the client with the same class
+  # chain and structured data fields as a direct codeminer call, mirroring how
+  # errors already round-trip.
+  # warning_class = "none" suppresses the two generic codeminer warnings so the
+  # structured codeminer_missing_codes warning is the only one replayed.
+  client_warn <- rlang::catch_cnd(
+    test_conditions(
+      error = FALSE,
+      message_class = "none",
+      warning_class = "none",
+      structured_warning = TRUE
+    ) |>
+      suppressMessages(),
+    classes = "codeminer_missing_codes"
+  )
+
+  expect_s3_class(client_warn, "codeminer_missing_codes")
+  expect_s3_class(client_warn, "codeminer_warning")
+  expect_s3_class(client_warn, "warning")
+  # structured data field survives the JSON round-trip
+  expect_identical(client_warn$missing_codes, c("ZZ9", "YY8"))
+  expect_identical(client_warn$table_type, "lookup")
+
+  # ----- Base R warnings remain ignored -----------------------------
+  # warning_class = "none" emits plain warning()s server-side; these are never
+  # captured, so nothing is replayed on the client.
+  expect_no_warning(
+    test_conditions(
+      error = FALSE,
+      message_class = "none",
+      warning_class = "none"
+    ) |>
+      suppressMessages()
+  )
 })
 
 test_that("Large integer values are read as type character", {

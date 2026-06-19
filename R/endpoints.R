@@ -563,7 +563,8 @@ conditions_test <- function(
   message_class = "codeminer_message",
   warning_class = "codeminer_warning",
   error_class = "codeminer_error",
-  error = TRUE
+  error = TRUE,
+  structured_warning = FALSE
 ) {
   # message 1 - 2 bullet points, both the same bullet type
   message_text_1 <- c(
@@ -657,6 +658,23 @@ conditions_test <- function(
       message = warning_text_2,
       class = warning_class,
       cli_message = warning_text_2
+    )
+  }
+
+  # Warning carrying structured data fields (mirrors
+  # codeminer::missing_codes_warning): used to test that a subclassed warning
+  # round-trips with its class chain and data fields intact, like errors do.
+  if (isTRUE(as.logical(structured_warning))) {
+    structured_text <- c(
+      "!" = "The following codes were not found in the lookup table:",
+      "*" = "{.code {c('ZZ9', 'YY8')}}"
+    )
+    cli::cli_warn(
+      message = structured_text,
+      class = c("codeminer_missing_codes", "codeminer_warning"),
+      cli_message = structured_text,
+      missing_codes = c("ZZ9", "YY8"),
+      table_type = "lookup"
     )
   }
 
