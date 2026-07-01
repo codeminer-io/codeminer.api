@@ -257,8 +257,15 @@ Important implications:
 - **`depth = Inf`**: JSON has no `Inf` literal. The client sends `"Inf"` as a
   string; the server converts it back via `as.numeric("Inf")`.
 - **`col_filters`**: Can be `"default"` (string), `NULL` (JSON null), or a
-  named list (JSON object). The server passes through as-is since `codeminer`
-  handles all three.
+  table-keyed object — top-level keys `lookup` / `relationship` / `mapping`,
+  then code type (or `"from > to"` pair), then `column: [values]`, e.g.
+  `{"lookup": {"SNOMED CT": {"active_concept": ["1"]}}}`. The server passes
+  it through as-is since `codeminer` handles all three forms. Each table
+  entry replaces that table's default filters wholesale; a JSON `null` for a
+  table key means "that table unfiltered"; entries that match no registered
+  table/column/value come back as structured warnings in the response
+  envelope. The pre-existing flat `{"column": [values]}` form is rejected by
+  `codeminer` with a structured 422.
 - **`relationship_types`**: The client normalises codelists/data frames to a
   character vector before sending. The server receives a character vector or
   NULL.
