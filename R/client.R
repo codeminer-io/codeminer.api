@@ -1,6 +1,13 @@
 #' @inherit codeminer::DESCRIPTION
-#' @param col_filters Column filter specification. Use `"default"` for standard
-#'   filters, `NULL` for no filtering, or a named list for custom filters.
+#' @param col_filters Column filter specification. Use `"default"` for
+#'   pinned/metadata default filters, `NULL` for no filtering, or a
+#'   table-keyed list — top-level names `lookup` / `relationship` /
+#'   `mapping`, keyed by code type (or `"from > to"` pair for mappings),
+#'   e.g. `list(lookup = list("SNOMED CT" = list(active_concept = "1")))`.
+#'   Each table entry replaces that table's default filters wholesale and
+#'   reaches every table the query touches (e.g. both the mapping table and
+#'   the target lookup for [MAP()]). See `codeminer::CODES()` for full
+#'   details of the accepted forms.
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
 #' @param auth Authentication strategy (see [auth_strategies]). Defaults to

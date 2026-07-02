@@ -34,8 +34,15 @@ option.}
 \item{preferred_description_only}{\code{logical}. If \code{TRUE} (default), return only
 preferred descriptions.}
 
-\item{col_filters}{Column filter specification. Use \code{"default"} for standard
-filters, \code{NULL} for no filtering, or a named list for custom filters.}
+\item{col_filters}{Column filter specification. Use \code{"default"} for
+pinned/metadata default filters, \code{NULL} for no filtering, or a
+table-keyed list — top-level names \code{lookup} / \code{relationship} /
+\code{mapping}, keyed by code type (or \code{"from > to"} pair for mappings),
+e.g. \code{list(lookup = list("SNOMED CT" = list(active_concept = "1")))}.
+Each table entry replaces that table's default filters wholesale and
+reaches every table the query touches (e.g. both the mapping table and
+the target lookup for \code{\link[=MAP]{MAP()}}). See \code{codeminer::CODES()} for full
+details of the accepted forms.}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as tibble.}
