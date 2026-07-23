@@ -3,6 +3,12 @@
 # table-keyed list (list(lookup/relationship/mapping, keyed by code type or
 # "from > to")). These tests pin the pass-through at the factory level.
 
+# future_promise() runs on whatever plan is active. A real multisession worker
+# is a fresh R process and would not see the dummy DB set up in-process by
+# setup.R, so pin sequential here and restore whatever was active afterwards.
+old_plan <- future::plan(future::sequential)
+withr::defer(future::plan(old_plan), teardown_env())
+
 col_filters_test_handler <- codeminer_handler_factory(function(
   codes = NULL,
   type = NULL,
@@ -30,7 +36,7 @@ test_that("a table-keyed col_filters body filters the queried table", {
   )
   res <- new.env()
 
-  response <- col_filters_test_handler(req, res)
+  response <- resolve_promise(col_filters_test_handler(req, res))
 
   expect_setequal(response$result$code, c("disorder", "finding"))
 })
@@ -47,7 +53,7 @@ test_that("col_filters entries matching no table warn in the envelope", {
   )
   res <- new.env()
 
-  response <- col_filters_test_handler(req, res)
+  response <- resolve_promise(col_filters_test_handler(req, res))
 
   # The typo'd key is ignored (defaults apply) and the structured warning is
   # replayed to the client. `result` is the unclassed codelist, so check the
@@ -67,7 +73,7 @@ test_that("the legacy flat col_filters form returns a structured 422", {
   )
   res <- new.env()
 
-  response <- col_filters_test_handler(req, res)
+  response <- resolve_promise(col_filters_test_handler(req, res))
 
   expect_equal(res$status, 422)
   expect_true("codeminer_col_filters_invalid" %in% response$error$error_type)

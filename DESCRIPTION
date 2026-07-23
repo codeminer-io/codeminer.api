@@ -18,18 +18,21 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 VignetteBuilder: knitr
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     callr,
+    later,
     withr,
     knitr,
     rmarkdown
 Config/testthat/edition: 3
-Imports: 
+Imports:
     cli,
     codeminer,
+    future,
     httr2,
     plumber,
+    promises,
     purrr,
     rlang,
     stats,
