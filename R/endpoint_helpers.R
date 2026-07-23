@@ -21,17 +21,20 @@
 #' warnings/messages are not captured and never exposed to the client.
 #'
 #' @param e A condition object passed from the API handler.
-#' @param res A plumber response object whose `status` field will be updated.
 #'
-#' @return A named list with items `error_type` and `error_message`, that
-#'   plumber will serialise to JSON. The latter should be a named list of one or
-#'   more error messages where names can be used as bullet points with
-#'   [cli::cli_abort()] (see [cli::cli_bullets()] for valid bullet types). If no
-#'   bullet point is needed, then use '-' (ignored by [cli::cli_abort()]).
+#' @return A named list with items `status`, `error_type` and `error_message`.
+#'   `status` is the intended HTTP status code, applied to the plumber response
+#'   by `codeminer_handler_factory()`'s wrapper once the promise resolves — it
+#'   is not part of the client-facing payload. `error_type`/`error_message` are
+#'   what plumber
+#'   serialises to JSON. The latter should be a named list of one or more error
+#'   messages where names can be used as bullet points with [cli::cli_abort()]
+#'   (see [cli::cli_bullets()] for valid bullet types). If no bullet point is
+#'   needed, then use '-' (ignored by [cli::cli_abort()]).
 #'
 #' @keywords internal
 #' @noRd
-format_backend_error <- function(e, res) {
+format_backend_error <- function(e) {
   UseMethod("format_backend_error")
 }
 
@@ -52,22 +55,22 @@ format_backend_error <- function(e, res) {
 #'
 #' @inheritParams format_backend_error
 #'
-#' @return A list suitable for JSON serialisation, containing:
+#' @return A list containing `status` (500), and the client-facing payload:
 #'   - `error_type` (always "Backend Error")
 #'   - `error_message` (a named list containing the plain error message with name "x")
 #'
 #' @keywords internal
 #' @noRd
-format_backend_error.default <- function(e, res) {
+format_backend_error.default <- function(e) {
   warning(
     "Backend error: ",
     conditionMessage(e),
     immediate. = TRUE,
     call. = FALSE
   )
-  res$status <- 500
 
   list(
+    status = 500,
     error_type = "Backend Error",
     error_message = list(x = conditionMessage(e))
   )
@@ -90,7 +93,7 @@ format_backend_error.default <- function(e, res) {
 #'
 #' @inheritParams format_backend_error
 #'
-#' @return A list suitable for JSON serialisation, containing:
+#' @return A list containing `status` (422), and the client-facing payload:
 #'   - `error_type` – the CodeMiner-specific class chain (e.g.
 #'     `c("codeminer_max_tree_codes_exceeded", "codeminer_error")`), so client
 #'     errors mirror codeminer's native condition classes
@@ -98,10 +101,9 @@ format_backend_error.default <- function(e, res) {
 #'
 #' @keywords internal
 #' @noRd
-format_backend_error.codeminer_error <- function(e, res) {
-  res$status <- 422
-
+format_backend_error.codeminer_error <- function(e) {
   list(
+    status = 422,
     # Send the codeminer-specific class chain (drop the base R condition classes,
     # which cli_abort re-adds client-side) so client errors mirror codeminer's
     # native condition classes.
@@ -171,7 +173,7 @@ capture_cm_condition <- function(target, warn_env) {
   }
 }
 
-codeminer_handle <- function(expr, res) {
+codeminer_handle <- function(expr) {
   # setup
   warn_env <- new.env(parent = emptyenv())
   warn_env$warnings <- list()
@@ -188,7 +190,7 @@ codeminer_handle <- function(expr, res) {
     ),
     error = function(e) {
       # format errors and set `error_response_class`
-      error_response <- format_backend_error(e, res)
+      error_response <- format_backend_error(e)
       class(error_response) <- error_response_class
       return(error_response)
     }
@@ -202,6 +204,12 @@ codeminer_handle <- function(expr, res) {
   )
 
   # response body will be a list with items result/error, warnings, messages.
+  # `error` also carries a `status` field (the intended HTTP status) —
+  # codeminer_handler_factory()'s wrapper extracts it and applies it to the
+  # real plumber response once the async future resolves, then strips it
+  # before the body is serialised (this function runs inside a background
+  # worker, so it has no `res` of its own to mutate directly).
+  #
   # Each warnings/messages entry is a structured object (type, message, optional
   # data fields - see capture_cm_condition()). The leading "Warnings: N" count
   # string is load-bearing: it keeps the array heterogeneous so the client's
@@ -233,7 +241,36 @@ codeminer_handler_factory <- function(f) {
     all_args <- c(req$args, req$body)
     param_names <- intersect(rlang::fn_fmls_names(f), names(all_args))
     args <- all_args[param_names]
-    codeminer_handle(rlang::exec(f, !!!args), res)
+
+    # Runs the actual call (including the DB read) on a background worker, so
+    # a slow/stuck request doesn't block the main process — /health and every
+    # other request stay responsive. Workers are persistent (future::plan() in
+    # run_codeminer_api_foreground()), so each pays its own DB-connect/cache
+    # cost once, not per request.
+    promises::future_promise({
+      codeminer_handle(rlang::exec(f, !!!args))
+    }) |>
+      promises::then(
+        onFulfilled = function(body) {
+          if (!is.null(body$error$status)) {
+            res$status <- body$error$status
+            body$error$status <- NULL
+          }
+          body
+        },
+        onRejected = function(e) {
+          # The worker process itself failed (as opposed to a normal R error,
+          # which codeminer_handle already turns into a well-formed error
+          # response above) — still return valid JSON rather than leaving the
+          # request hanging on an unhandled rejection.
+          res$status <- 500
+          list(
+            error = list(error_type = "Backend Error", error_message = list(x = conditionMessage(e))),
+            warnings = list("Warnings: 0"),
+            messages = list("Messages: 0")
+          )
+        }
+      )
   }
 
   # Set the wrapper's formals to match the original function

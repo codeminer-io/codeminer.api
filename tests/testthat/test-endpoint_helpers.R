@@ -118,8 +118,7 @@ test_that("codeminer_handle captures codeminer_message conditions", {
     "OK"
   }
 
-  res <- new.env()
-  output <- codeminer_handle(expr(), res)
+  output <- codeminer_handle(expr())
 
   expect_equal(output$result, "OK")
   # skip the N-messages count entry; message text under $message
@@ -140,8 +139,7 @@ test_that("codeminer_handle captures codeminer_warning conditions", {
     "OK"
   }
 
-  res <- new.env()
-  output <- codeminer_handle(expr(), res)
+  output <- codeminer_handle(expr())
 
   expect_equal(output$result, "OK")
   expect_equal(output$warnings[[2]]$type, character(0))
@@ -163,8 +161,7 @@ test_that("codeminer_handle captures a subclassed warning with data fields", {
     "OK"
   }
 
-  res <- new.env()
-  output <- codeminer_handle(expr(), res)
+  output <- codeminer_handle(expr())
 
   captured <- output$warnings[[2]]
   expect_equal(captured$type, "codeminer_missing_codes")
@@ -180,13 +177,25 @@ test_that("codeminer_handle ignores base R warnings and messages", {
     "OK"
   }
 
-  res <- new.env()
-  output <- suppressWarnings(suppressMessages(codeminer_handle(expr(), res)))
+  output <- suppressWarnings(suppressMessages(codeminer_handle(expr())))
 
   expect_equal(output$result, "OK")
   # only the count element remains - base conditions are not captured
   expect_equal(output$warnings, list("Warnings: 0"))
   expect_equal(output$messages, list("Messages: 0"))
+})
+
+test_that("codeminer_handle formats an unexpected error with status 500", {
+  expr <- function() {
+    stop("boom")
+  }
+
+  output <- suppressWarnings(codeminer_handle(expr()))
+
+  expect_null(output$result)
+  expect_equal(output$error$status, 500)
+  expect_equal(output$error$error_type, "Backend Error")
+  expect_equal(output$error$error_message, list(x = "boom"))
 })
 
 test_that("codeminer_handle captures codeminer_error", {
@@ -198,10 +207,10 @@ test_that("codeminer_handle captures codeminer_error", {
     )
   }
 
-  res <- new.env()
-  output <- codeminer_handle(expr(), res)
+  output <- codeminer_handle(expr())
 
   expect_null(output$result)
+  expect_equal(output$error$status, 422)
   expect_equal(output$error$error_type, "codeminer_error")
 
   expect_equal(
@@ -219,8 +228,7 @@ test_that("codeminer_handle preserves the codeminer-specific class chain", {
     )
   }
 
-  res <- new.env()
-  output <- codeminer_handle(expr(), res)
+  output <- codeminer_handle(expr())
 
   # Full codeminer chain sent; base R condition classes dropped (cli_abort
   # re-adds them client-side).

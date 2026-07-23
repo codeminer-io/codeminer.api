@@ -1,3 +1,38 @@
+# Resolves a promise synchronously for tests. codeminer_handler_factory()'s
+# wrapper returns a promise (see endpoint_helpers.R), so tests that call it
+# directly (rather than through a running plumber server, which pumps the
+# event loop itself) need this to get the resolved value.
+resolve_promise <- function(p, timeout = 10) {
+  resolved <- FALSE
+  value <- NULL
+  err <- NULL
+
+  promises::then(
+    p,
+    onFulfilled = function(x) {
+      value <<- x
+      resolved <<- TRUE
+    },
+    onRejected = function(e) {
+      err <<- e
+      resolved <<- TRUE
+    }
+  )
+
+  start <- Sys.time()
+  while (!resolved) {
+    if (as.numeric(Sys.time() - start, units = "secs") > timeout) {
+      stop("resolve_promise() timed out waiting for the promise to settle")
+    }
+    later::run_now(timeout = 0.1)
+  }
+
+  if (!is.null(err)) {
+    stop(err)
+  }
+  value
+}
+
 # Helper function to test endpoint addition
 test_endpoint_addition <- function(
   endpoint_function,

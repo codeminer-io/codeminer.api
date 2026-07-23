@@ -67,7 +67,8 @@ run_codeminer_api_foreground <- function(
   # Validate CODEMINER_DB_PATH
   validate_codeminer_db_path()
 
-  # Build the API router
+  # Build the API router (also sets the future::plan() worker pool — see
+  # create_codeminer_api())
   pr <- create_codeminer_api()
 
   # Docs toggle

@@ -10,6 +10,19 @@
 #' @return A plumber router object with all endpoints configured
 #' @export
 create_codeminer_api <- function() {
+  # Persistent worker pool so a slow/stuck request (e.g. a hung DB read)
+  # doesn't block every other request on the main process — see
+  # codeminer_handler_factory() in endpoint_helpers.R. Set here (rather than
+  # only in run_codeminer_api_foreground()) so it's in effect for every
+  # consumer of this router, including deployments that call
+  # create_codeminer_api() directly and run it themselves. Each worker is a
+  # separate R process with its own DB connection/cache, so memory scales
+  # with worker count; size this against available memory, not just CPU.
+  future::plan(
+    future::multisession,
+    workers = as.integer(Sys.getenv("CODEMINER_API_WORKERS", unset = "4"))
+  )
+
   pr <- plumber::pr()
 
   # ensure all columns are returned, even those which are `NA`
