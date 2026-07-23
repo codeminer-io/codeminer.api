@@ -67,17 +67,8 @@ run_codeminer_api_foreground <- function(
   # Validate CODEMINER_DB_PATH
   validate_codeminer_db_path()
 
-  # Persistent worker pool so a slow/stuck request (e.g. a hung DB read)
-  # doesn't block every other request on the main process — see
-  # codeminer_handler_factory() in endpoint_helpers.R. Each worker is a
-  # separate R process with its own DB connection/cache, so memory scales
-  # with worker count; size this against available memory, not just CPU.
-  future::plan(
-    future::multisession,
-    workers = as.integer(Sys.getenv("CODEMINER_API_WORKERS", unset = "4"))
-  )
-
-  # Build the API router
+  # Build the API router (also sets the future::plan() worker pool — see
+  # create_codeminer_api())
   pr <- create_codeminer_api()
 
   # Docs toggle
