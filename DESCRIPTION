@@ -38,5 +38,5 @@ Imports:
     stats,
     tibble,
     utils
-Remotes: 
-    github::codeminer-io/codeminer
+Remotes:
+    github::codeminer-io/codeminer@results-chunking
