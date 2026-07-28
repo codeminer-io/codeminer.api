@@ -143,6 +143,7 @@ add_description_chunk_endpoint <- function(pr) {
         total_rows = NULL,
         accumulated_so_far = 0,
         max_rows = 30000,
+        max_chunk_matches = 20000,
         lookup_version = "latest",
         ignore_case = TRUE,
         preferred_description_only = TRUE,
@@ -156,6 +157,7 @@ add_description_chunk_endpoint <- function(pr) {
           total_rows = total_rows,
           accumulated_so_far = accumulated_so_far,
           max_rows = max_rows,
+          max_chunk_matches = max_chunk_matches,
           lookup_version = lookup_version,
           ignore_case = ignore_case,
           preferred_description_only = preferred_description_only,
@@ -231,6 +233,7 @@ add_codes_like_chunk_endpoint <- function(pr) {
         total_rows = NULL,
         accumulated_so_far = 0,
         max_rows = 30000,
+        max_chunk_matches = 20000,
         lookup_version = "latest",
         preferred_description_only = TRUE,
         col_filters = "default"
@@ -243,6 +246,7 @@ add_codes_like_chunk_endpoint <- function(pr) {
           total_rows = total_rows,
           accumulated_so_far = accumulated_so_far,
           max_rows = max_rows,
+          max_chunk_matches = max_chunk_matches,
           lookup_version = lookup_version,
           preferred_description_only = preferred_description_only,
           col_filters = col_filters
