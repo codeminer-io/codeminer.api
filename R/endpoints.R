@@ -119,6 +119,140 @@ add_codes_like_endpoint <- function(pr) {
   pr
 }
 
+#' Add chunked DESCRIPTION endpoint to API router
+#'
+#' Adds a POST endpoint at `/DESCRIPTION_CHUNK` that wraps
+#' `codeminer::DESCRIPTION_CHUNK()` - a bounded variant of `/DESCRIPTION` that
+#' scans only one `rowid` range per call, for callers that need to keep each
+#' request small (e.g. to stay under a network-layer timeout) by making
+#' repeated calls with the returned cursor instead of one unbounded call.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_description_chunk_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/DESCRIPTION_CHUNK",
+    handler = codeminer_handler_factory(
+      function(
+        pattern,
+        type = NULL,
+        cursor = 0,
+        batch_size = 2000,
+        total_rows = NULL,
+        accumulated_so_far = 0,
+        max_rows = 30000,
+        lookup_version = "latest",
+        ignore_case = TRUE,
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::DESCRIPTION_CHUNK(
+          pattern = pattern,
+          type = type,
+          cursor = cursor,
+          batch_size = batch_size,
+          total_rows = total_rows,
+          accumulated_so_far = accumulated_so_far,
+          max_rows = max_rows,
+          lookup_version = lookup_version,
+          ignore_case = ignore_case,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add chunked "all codes of a type" endpoint to API router
+#'
+#' Adds a POST endpoint at `/CODES_ALL_CHUNK` that wraps
+#' `codeminer::CODES_ALL_CHUNK()` - a bounded variant of `CODES("all", ...)`.
+#' See `add_description_chunk_endpoint()` for the chunking rationale.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_codes_all_chunk_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/CODES_ALL_CHUNK",
+    handler = codeminer_handler_factory(
+      function(
+        type = NULL,
+        cursor = 0,
+        batch_size = 2000,
+        total_rows = NULL,
+        accumulated_so_far = 0,
+        max_rows = 30000,
+        lookup_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::CODES_ALL_CHUNK(
+          type = type,
+          cursor = cursor,
+          batch_size = batch_size,
+          total_rows = total_rows,
+          accumulated_so_far = accumulated_so_far,
+          max_rows = max_rows,
+          lookup_version = lookup_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
+#' Add chunked CODES_LIKE endpoint to API router
+#'
+#' Adds a POST endpoint at `/CODES_LIKE_CHUNK` that wraps
+#' `codeminer::CODES_LIKE_CHUNK()` - a bounded variant of `/CODES_LIKE`. See
+#' `add_description_chunk_endpoint()` for the chunking rationale.
+#'
+#' @param pr A plumber router object
+#' @return The modified plumber router
+#' @keywords internal
+add_codes_like_chunk_endpoint <- function(pr) {
+  pr$handle(
+    method = "POST",
+    path = "/CODES_LIKE_CHUNK",
+    handler = codeminer_handler_factory(
+      function(
+        pattern,
+        type = NULL,
+        cursor = 0,
+        batch_size = 2000,
+        total_rows = NULL,
+        accumulated_so_far = 0,
+        max_rows = 30000,
+        lookup_version = "latest",
+        preferred_description_only = TRUE,
+        col_filters = "default"
+      ) {
+        codeminer::CODES_LIKE_CHUNK(
+          pattern = pattern,
+          type = type,
+          cursor = cursor,
+          batch_size = batch_size,
+          total_rows = total_rows,
+          accumulated_so_far = accumulated_so_far,
+          max_rows = max_rows,
+          lookup_version = lookup_version,
+          preferred_description_only = preferred_description_only,
+          col_filters = col_filters
+        )
+      }
+    )
+  )
+  pr
+}
+
 #' Add CHILDREN endpoint to API router
 #'
 #' Adds a POST endpoint at `/CHILDREN` that wraps `codeminer::CHILDREN()`.
