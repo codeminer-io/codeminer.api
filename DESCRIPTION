@@ -39,4 +39,4 @@ Imports:
     tibble,
     utils
 Remotes:
-    github::codeminer-io/codeminer@results-chunking
+    github::codeminer-io/codeminer
