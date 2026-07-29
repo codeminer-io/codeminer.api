@@ -275,6 +275,7 @@ add_children_endpoint <- function(pr) {
         lookup_version = "latest",
         relationship_version = "latest",
         preferred_description_only = TRUE,
+        max_nodes = 20000,
         col_filters = "default"
       ) {
         codeminer::CHILDREN(
@@ -283,6 +284,7 @@ add_children_endpoint <- function(pr) {
           lookup_version = lookup_version,
           relationship_version = relationship_version,
           preferred_description_only = preferred_description_only,
+          max_nodes = max_nodes,
           col_filters = col_filters
         )
       }
@@ -310,6 +312,7 @@ add_n_children_endpoint <- function(pr) {
         lookup_version = "latest",
         relationship_version = "latest",
         preferred_description_only = TRUE,
+        max_nodes = 20000,
         col_filters = "default"
       ) {
         # JSON has no Inf; client sends "Inf" as string
@@ -321,6 +324,7 @@ add_n_children_endpoint <- function(pr) {
           lookup_version = lookup_version,
           relationship_version = relationship_version,
           preferred_description_only = preferred_description_only,
+          max_nodes = max_nodes,
           col_filters = col_filters
         )
       }
@@ -347,6 +351,7 @@ add_parents_endpoint <- function(pr) {
         lookup_version = "latest",
         relationship_version = "latest",
         preferred_description_only = TRUE,
+        max_nodes = 20000,
         col_filters = "default"
       ) {
         codeminer::PARENTS(
@@ -355,6 +360,7 @@ add_parents_endpoint <- function(pr) {
           lookup_version = lookup_version,
           relationship_version = relationship_version,
           preferred_description_only = preferred_description_only,
+          max_nodes = max_nodes,
           col_filters = col_filters
         )
       }
@@ -382,6 +388,7 @@ add_n_parents_endpoint <- function(pr) {
         lookup_version = "latest",
         relationship_version = "latest",
         preferred_description_only = TRUE,
+        max_nodes = 20000,
         col_filters = "default"
       ) {
         depth <- as.numeric(depth)
@@ -392,6 +399,7 @@ add_n_parents_endpoint <- function(pr) {
           lookup_version = lookup_version,
           relationship_version = relationship_version,
           preferred_description_only = preferred_description_only,
+          max_nodes = max_nodes,
           col_filters = col_filters
         )
       }
@@ -419,6 +427,7 @@ add_attributes_for_endpoint <- function(pr) {
         relationship_version = "latest",
         relationship_types = NULL,
         preferred_description_only = TRUE,
+        max_nodes = 20000,
         col_filters = "default"
       ) {
         codeminer::ATTRIBUTES_FOR(
@@ -428,6 +437,7 @@ add_attributes_for_endpoint <- function(pr) {
           relationship_version = relationship_version,
           relationship_types = relationship_types,
           preferred_description_only = preferred_description_only,
+          max_nodes = max_nodes,
           col_filters = col_filters
         )
       }
@@ -455,6 +465,7 @@ add_has_attributes_endpoint <- function(pr) {
         relationship_version = "latest",
         relationship_types = NULL,
         preferred_description_only = TRUE,
+        max_nodes = 20000,
         col_filters = "default"
       ) {
         codeminer::HAS_ATTRIBUTES(
@@ -464,6 +475,7 @@ add_has_attributes_endpoint <- function(pr) {
           relationship_version = relationship_version,
           relationship_types = relationship_types,
           preferred_description_only = preferred_description_only,
+          max_nodes = max_nodes,
           col_filters = col_filters
         )
       }
