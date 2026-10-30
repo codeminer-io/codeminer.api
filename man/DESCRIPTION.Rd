@@ -6,8 +6,8 @@
 \usage{
 DESCRIPTION(
   pattern,
-  type = NULL,
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   ignore_case = TRUE,
   preferred_description_only = TRUE,
   col_filters = "default",

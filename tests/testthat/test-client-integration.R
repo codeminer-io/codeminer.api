@@ -294,6 +294,33 @@ test_that("Client functions outputs match equivalent codeminer functions", {
     purrr::map_df(direct_lookup, as.character)
   )
 
+  # ---- Options -----------
+
+  # Unset: the server reports the missing type
+  withr::local_options(codeminer.code_type = NULL)
+  expect_error(DESCRIPTION("asthma"), "is required", class = "codeminer_error")
+
+  # Set: drives the client without an explicit type
+  withr::local_options(codeminer.code_type = "ICD-10")
+  expect_equal_results(
+    DESCRIPTION("asthma") |> suppressMessages(),
+    codeminer::DESCRIPTION("asthma", type = "ICD-10") |> suppressMessages()
+  )
+
+  # Bad value: rejected by the server, naming the value and the valid types
+  withr::local_options(codeminer.code_type = "ICD10")
+  bad_type <- expect_error(DESCRIPTION("asthma"), class = "codeminer_error")
+  expect_match(conditionMessage(bad_type), "ICD10", fixed = TRUE)
+  expect_match(conditionMessage(bad_type), "Available code types")
+
+  withr::local_options(codeminer.code_type = "ICD-10")
+  withr::local_options(codeminer.lookup_version = "no-such-version")
+  bad_version <- expect_error(
+    DESCRIPTION("asthma"),
+    class = "codeminer_error"
+  )
+  expect_match(conditionMessage(bad_version), "no-such-version", fixed = TRUE)
+
   bg$kill()
 })
 

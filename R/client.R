@@ -24,8 +24,8 @@
 #' @export
 DESCRIPTION <- function(
   pattern,
-  type = NULL,
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   ignore_case = TRUE,
   preferred_description_only = TRUE,
   col_filters = "default",
@@ -61,8 +61,8 @@ DESCRIPTION <- function(
 #' @export
 CODES <- function(
   ...,
-  type = NULL,
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -97,8 +97,8 @@ CODES <- function(
 #' @export
 CODES_LIKE <- function(
   pattern,
-  type = NULL,
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -131,9 +131,12 @@ CODES_LIKE <- function(
 #' @export
 CHILDREN <- function(
   ...,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -170,9 +173,12 @@ CHILDREN <- function(
 N_CHILDREN <- function(
   ...,
   depth = 1,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -212,9 +218,12 @@ N_CHILDREN <- function(
 #' @export
 PARENTS <- function(
   ...,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -251,9 +260,12 @@ PARENTS <- function(
 N_PARENTS <- function(
   ...,
   depth = 1,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -292,9 +304,12 @@ N_PARENTS <- function(
 #' @export
 ATTRIBUTES_FOR <- function(
   ...,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
   relationship_types = NULL,
   preferred_description_only = TRUE,
   col_filters = "default",
@@ -337,9 +352,12 @@ ATTRIBUTES_FOR <- function(
 #' @export
 HAS_ATTRIBUTES <- function(
   ...,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
   relationship_types = NULL,
   preferred_description_only = TRUE,
   col_filters = "default",
@@ -381,9 +399,12 @@ HAS_ATTRIBUTES <- function(
 #' @export
 RELATIONSHIP_TYPES_FROM <- function(
   ...,
-  type = NULL,
-  relationship_version = "latest",
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -419,9 +440,12 @@ RELATIONSHIP_TYPES_FROM <- function(
 #' @export
 RELATIONSHIP_TYPES_TO <- function(
   ...,
-  type = NULL,
-  relationship_version = "latest",
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -458,9 +482,12 @@ RELATIONSHIP_TYPES_TO <- function(
 #' @export
 RELATIONSHIP_TYPES <- function(
   pattern = NULL,
-  type = NULL,
-  relationship_version = "latest",
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   ignore_case = TRUE,
   preferred_description_only = TRUE,
   col_filters = "default",
@@ -496,10 +523,10 @@ RELATIONSHIP_TYPES <- function(
 #' @export
 MAP <- function(
   ...,
-  from = NULL,
-  to = NULL,
-  map_version = "latest",
-  lookup_version = "latest",
+  from = getOption("codeminer.map_from"),
+  to = getOption("codeminer.map_to"),
+  map_version = getOption("codeminer.map_version", default = "latest"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   col_filters = "default",
   .return_raw = FALSE,
   auth = auth_current()
@@ -534,11 +561,14 @@ MAP <- function(
 #' @export
 get_relationship_tree <- function(
   codes,
-  type = NULL,
+  type = getOption("codeminer.code_type"),
   expand_to_descendants = TRUE,
   max_codes = 10000,
-  relationship_version = "latest",
-  lookup_version = "latest",
+  relationship_version = getOption(
+    "codeminer.relationship_version",
+    default = "latest"
+  ),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   col_filters = "default",
   preferred_description_only = TRUE,
   .return_raw = FALSE,

@@ -6,9 +6,9 @@
 \usage{
 HAS_ATTRIBUTES(
   ...,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption("codeminer.relationship_version", default = "latest"),
   relationship_types = NULL,
   preferred_description_only = TRUE,
   col_filters = "default",
@@ -63,7 +63,7 @@ HAS_ATTRIBUTES("73211009", type = "sct")
 
 }
 \seealso{
-Other Code relationships: 
+Other Code relationships:
 \code{\link[codeminer]{parent_child_retrieval}},
 \code{\link[codeminer]{relationship_types}}
 }
