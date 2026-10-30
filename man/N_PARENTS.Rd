@@ -7,9 +7,9 @@
 N_PARENTS(
   ...,
   depth = 1,
-  type = NULL,
-  lookup_version = "latest",
-  relationship_version = "latest",
+  type = getOption("codeminer.code_type"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
+  relationship_version = getOption("codeminer.relationship_version", default = "latest"),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -61,7 +61,7 @@ N_PARENTS("73211009", depth = 2, type = "sct")
 
 }
 \seealso{
-Other Code relationships: 
-\code{\link[codeminer]{attributes}()},
+Other Code relationships:
+\code{\link[codeminer]{attributes}},
 \code{\link[codeminer]{relationship_types}}
 }

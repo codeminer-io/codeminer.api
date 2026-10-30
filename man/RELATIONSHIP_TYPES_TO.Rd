@@ -6,9 +6,9 @@
 \usage{
 RELATIONSHIP_TYPES_TO(
   ...,
-  type = NULL,
-  relationship_version = "latest",
-  lookup_version = "latest",
+  type = getOption("codeminer.code_type"),
+  relationship_version = getOption("codeminer.relationship_version", default = "latest"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
   col_filters = "default",
   .return_raw = FALSE,
@@ -68,7 +68,7 @@ RELATIONSHIP_TYPES_TO("73211009", type = "sct")
 
 }
 \seealso{
-Other Code relationships: 
-\code{\link[codeminer]{attributes}()},
+Other Code relationships:
+\code{\link[codeminer]{attributes}},
 \code{\link[codeminer]{parent_child_retrieval}}
 }

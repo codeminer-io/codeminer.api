@@ -6,11 +6,11 @@
 \usage{
 get_relationship_tree(
   codes,
-  type = NULL,
+  type = getOption("codeminer.code_type"),
   expand_to_descendants = TRUE,
   max_codes = 10000,
-  relationship_version = "latest",
-  lookup_version = "latest",
+  relationship_version = getOption("codeminer.relationship_version", default = "latest"),
+  lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   col_filters = "default",
   preferred_description_only = TRUE,
   .return_raw = FALSE,
@@ -40,8 +40,9 @@ option.}
 \item{lookup_version}{Lookup table version. Defaults to \code{"latest"}. Can
 be configured via the \code{codeminer.lookup_version} option.}
 
-\item{col_filters}{Column filters to apply to both the relationship
-and lookup tables. See \code{\link[codeminer:CODES]{CODES()}} for details.}
+\item{col_filters}{Column filters for the tables this query touches (the
+relationship table and the lookup table, each addressed by its own
+type + key). See \code{\link[codeminer:CODES]{CODES()}} for details.}
 
 \item{preferred_description_only}{Logical. If \code{TRUE} (default), node
 \code{term} is the preferred description only (one row per code).}
@@ -105,10 +106,13 @@ get_relationship_tree("E10", type = "icd10")
 \code{\link[codeminer:get_lookup_table]{get_lookup_table()}} for terms, \code{\link[codeminer:PARENTS]{PARENTS()}} / \code{\link[codeminer:CHILDREN]{CHILDREN()}} for
 flat codelist traversal.
 
-Other Clinical code lookups and mappings: 
-\code{\link[codeminer]{CODES}()},
-\code{\link[codeminer]{MAP}()},
-\code{\link[codeminer]{get_lookup_table}()},
-\code{\link[codeminer]{get_mapping_table}()},
-\code{\link[codeminer]{get_relationship_table}()}
+Other Clinical code lookups and mappings:
+\code{\link[codeminer:CODES]{CODES()}},
+\code{\link[codeminer:CODES_ALL_CHUNK]{CODES_ALL_CHUNK()}},
+\code{\link[codeminer:CODES_LIKE_CHUNK]{CODES_LIKE_CHUNK()}},
+\code{\link[codeminer:DESCRIPTION_CHUNK]{DESCRIPTION_CHUNK()}},
+\code{\link[codeminer:MAP]{MAP()}},
+\code{\link[codeminer:get_lookup_table]{get_lookup_table()}},
+\code{\link[codeminer:get_mapping_table]{get_mapping_table()}},
+\code{\link[codeminer:get_relationship_table]{get_relationship_table()}}
 }

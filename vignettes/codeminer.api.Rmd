@@ -66,6 +66,36 @@ bg$is_alive()
 options(codeminer.api.url = "http://127.0.0.1:8000")
 ```
 
+### 4. Set defaults with options (optional)
+
+The client wrappers read the same options as `codeminer`, so you can set your
+defaults once instead of naming them on every call:
+
+```{r set-defaults}
+options(codeminer.code_type = "ICD-10")
+
+DESCRIPTION("asthma")
+```
+
+| Option                           | Default for                              |
+|----------------------------------|------------------------------------------|
+| `codeminer.code_type`            | `type`                                   |
+| `codeminer.lookup_version`       | `lookup_version` (otherwise `"latest"`)  |
+| `codeminer.relationship_version` | `relationship_version` (otherwise `"latest"`) |
+| `codeminer.map_version`          | `map_version` in `MAP()` (otherwise `"latest"`) |
+| `codeminer.map_from`             | `from` in `MAP()`                        |
+| `codeminer.map_to`               | `to` in `MAP()`                          |
+
+An explicit argument always takes priority over an option. As in `codeminer`:
+
+- `codeminer.code_type` doesn't apply to `MAP()`, so set `codeminer.map_from`
+  and `codeminer.map_to` as well if you want defaults there.
+- A codelist of a different code type to `codeminer.code_type` is an error, even
+  if you didn't pass `type`. Change the option or pass the matching `type`.
+
+The options are read in the client session, and a value the server doesn't
+recognise fails with the same error as passing it as an argument.
+
 ## Using the client wrappers
 
 The client wrappers mirror `codeminer` exactly. If you already know `codeminer`,
