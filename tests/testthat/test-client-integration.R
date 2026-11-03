@@ -321,6 +321,30 @@ test_that("Client functions outputs match equivalent codeminer functions", {
   )
   expect_match(conditionMessage(bad_version), "no-such-version", fixed = TRUE)
 
+  # ---- codeminer.col_filters -----------
+
+  # The option reaches the server as the request's col_filters
+  withr::local_options(codeminer.lookup_version = NULL)
+  withr::local_options(codeminer.col_filters = NA)
+  expect_equal_results(
+    CODES("J45") |> suppressMessages(),
+    codeminer::CODES("J45", type = "ICD-10", col_filters = NA) |>
+      suppressMessages()
+  )
+
+  # A bad value is rejected by the server, as the argument would be
+  withr::local_options(codeminer.col_filters = list(relationshp = list()))
+  expect_error(CODES("J45"), class = "codeminer_col_filters_invalid")
+
+  # An explicit argument still wins over the option. The direct call runs
+  # without the (bad) option, since codeminer reads it too.
+  client_default <- CODES("J45", col_filters = "default") |> suppressMessages()
+  withr::local_options(codeminer.col_filters = NULL)
+  expect_equal_results(
+    client_default,
+    codeminer::CODES("J45", type = "ICD-10") |> suppressMessages()
+  )
+
   bg$kill()
 })
 

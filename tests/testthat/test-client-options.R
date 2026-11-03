@@ -25,6 +25,7 @@ local_unset_codeminer_options <- function(.env = parent.frame()) {
     codeminer.map_version = NULL,
     codeminer.map_from = NULL,
     codeminer.map_to = NULL,
+    codeminer.col_filters = NULL,
     .local_envir = .env
   )
 }
@@ -235,4 +236,91 @@ test_that("get_codeminer_metadata ignores codeminer.code_type", {
   get_codeminer_metadata("lookup")
 
   expect_identical(query$type, "lookup")
+})
+
+# One call per client function taking `col_filters`, each with no `col_filters`
+col_filters_calls <- c(
+  type_calls,
+  # MAP() takes no `type`; swallow it so one loop covers every function
+  list(MAP = function(type = NULL, ...) {
+    MAP("J45", from = "ICD-10", to = "Read v3", ...)
+  })
+)
+
+all_edges <- list(relationship = list("SNOMED CT" = NA))
+
+test_that("unset options send today's request bodies", {
+  calls <- local_capture_requests()
+  local_unset_codeminer_options()
+
+  bodies <- list()
+  for (fn in names(col_filters_calls)) {
+    calls$body <- NULL
+    col_filters_calls[[fn]](type = "ICD-10")
+    expect_identical(calls$body$col_filters, "default", label = fn)
+    bodies[[fn]] <- calls$body
+  }
+
+  # Recorded before col_filters read the option, so this proves an unset
+  # option sends exactly the bodies it did then.
+  expect_snapshot_value(bodies, style = "deparse")
+})
+
+test_that("col_filters defaults from codeminer.col_filters", {
+  calls <- local_capture_requests()
+  local_unset_codeminer_options()
+  withr::local_options(codeminer.col_filters = all_edges)
+
+  for (fn in names(col_filters_calls)) {
+    calls$body <- NULL
+    col_filters_calls[[fn]](type = "ICD-10")
+    expect_identical(calls$body$col_filters, all_edges, label = fn)
+  }
+})
+
+test_that("explicit col_filters overrides codeminer.col_filters", {
+  calls <- local_capture_requests()
+  local_unset_codeminer_options()
+  withr::local_options(codeminer.col_filters = all_edges)
+  other <- list(lookup = list("ICD-10" = list(status = "1")))
+
+  for (fn in names(col_filters_calls)) {
+    calls$body <- NULL
+    col_filters_calls[[fn]](type = "ICD-10", col_filters = other)
+    expect_identical(calls$body$col_filters, other, label = fn)
+
+    calls$body <- NULL
+    col_filters_calls[[fn]](type = "ICD-10", col_filters = "default")
+    expect_identical(calls$body$col_filters, "default", label = fn)
+
+    calls$body <- NULL
+    col_filters_calls[[fn]](type = "ICD-10", col_filters = NULL)
+    expect_true("col_filters" %in% names(calls$body), label = fn)
+    expect_null(calls$body$col_filters, label = fn)
+  }
+})
+
+test_that("codeminer.col_filters = NA sends null, like col_filters = NULL", {
+  calls <- local_capture_requests()
+  local_unset_codeminer_options()
+  withr::local_options(codeminer.col_filters = NA)
+
+  for (fn in names(col_filters_calls)) {
+    calls$body <- NULL
+    col_filters_calls[[fn]](type = "ICD-10")
+    expect_true(is.na(calls$body$col_filters), label = fn)
+  }
+
+  # Both reach the server as JSON null
+  to_json <- function(x) {
+    jsonlite::toJSON(x, auto_unbox = TRUE, na = "null", null = "null")
+  }
+  expect_identical(
+    to_json(list(col_filters = NA)),
+    to_json(list(col_filters = NULL))
+  )
+  expect_identical(
+    as.character(to_json(all_edges)),
+    '{"relationship":{"SNOMED CT":null}}'
+  )
 })

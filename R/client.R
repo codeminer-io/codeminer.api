@@ -1,6 +1,6 @@
 #' @inherit codeminer::DESCRIPTION
 #' @param col_filters Column filter specification. Use `"default"` for
-#'   pinned/metadata default filters, `NULL` for no filtering, or a
+#'   the server's default filters, `NULL` for no filtering, or a
 #'   table-keyed list — top-level names `lookup` / `relationship` /
 #'   `mapping`, keyed by code type (or `"from > to"` pair for mappings),
 #'   e.g. `list(lookup = list("SNOMED CT" = list(active_concept = "1")))`.
@@ -8,6 +8,12 @@
 #'   reaches every table the query touches (e.g. both the mapping table and
 #'   the target lookup for [MAP()]). See `codeminer::CODES()` for full
 #'   details of the accepted forms.
+#'
+#'   Defaults from the `codeminer.col_filters` option, which takes the same
+#'   shapes, so one `options()` call in a script's setup applies a filter to
+#'   every query; an explicit argument always wins. To turn filtering off
+#'   through the option use `options(codeminer.col_filters = NA)` (`NULL`
+#'   would unset the option).
 #' @param .return_raw Logical. If `TRUE`, return raw httr2 response object.
 #'   If `FALSE` (default), parse JSON and return as tibble.
 #' @param auth Authentication strategy (see [auth_strategies]). Defaults to
@@ -28,7 +34,7 @@ DESCRIPTION <- function(
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   ignore_case = TRUE,
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -64,7 +70,7 @@ CODES <- function(
   type = getOption("codeminer.code_type"),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -100,7 +106,7 @@ CODES_LIKE <- function(
   type = getOption("codeminer.code_type"),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -138,7 +144,7 @@ CHILDREN <- function(
     default = "latest"
   ),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -180,7 +186,7 @@ N_CHILDREN <- function(
     default = "latest"
   ),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -225,7 +231,7 @@ PARENTS <- function(
     default = "latest"
   ),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -267,7 +273,7 @@ N_PARENTS <- function(
     default = "latest"
   ),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -312,7 +318,7 @@ ATTRIBUTES_FOR <- function(
   ),
   relationship_types = NULL,
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -360,7 +366,7 @@ HAS_ATTRIBUTES <- function(
   ),
   relationship_types = NULL,
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -406,7 +412,7 @@ RELATIONSHIP_TYPES_FROM <- function(
   ),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -447,7 +453,7 @@ RELATIONSHIP_TYPES_TO <- function(
   ),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -490,7 +496,7 @@ RELATIONSHIP_TYPES <- function(
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   ignore_case = TRUE,
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -527,7 +533,7 @@ MAP <- function(
   to = getOption("codeminer.map_to"),
   map_version = getOption("codeminer.map_version", default = "latest"),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 ) {
@@ -569,7 +575,7 @@ get_relationship_tree <- function(
     default = "latest"
   ),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   preferred_description_only = TRUE,
   .return_raw = FALSE,
   auth = auth_current()
