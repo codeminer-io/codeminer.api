@@ -85,6 +85,7 @@ DESCRIPTION("asthma")
 | `codeminer.map_version`          | `map_version` in `MAP()` (otherwise `"latest"`) |
 | `codeminer.map_from`             | `from` in `MAP()`                        |
 | `codeminer.map_to`               | `to` in `MAP()`                          |
+| `codeminer.col_filters`          | `col_filters` (otherwise `"default"`)    |
 
 An explicit argument always takes priority over an option. As in `codeminer`:
 
@@ -92,6 +93,12 @@ An explicit argument always takes priority over an option. As in `codeminer`:
   and `codeminer.map_to` as well if you want defaults there.
 - A codelist of a different code type to `codeminer.code_type` is an error, even
   if you didn't pass `type`. Change the option or pass the matching `type`.
+- `codeminer.col_filters` takes the same shapes as the `col_filters` argument,
+  so `options(codeminer.col_filters = list(relationship = list("SNOMED CT" = NA)))`
+  includes inactive SNOMED CT relationships in every query of a script.
+  `options(codeminer.col_filters = NA)` turns filtering off; `NULL` would unset
+  the option, returning to the server's defaults. A value the server rejects
+  fails on every call, so fix it at the source.
 
 The options are read in the client session, and a value the server doesn't
 recognise fails with the same error as passing it as an argument.

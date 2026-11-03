@@ -10,7 +10,7 @@ DESCRIPTION(
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   ignore_case = TRUE,
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 )
@@ -35,14 +35,20 @@ option.}
 preferred descriptions.}
 
 \item{col_filters}{Column filter specification. Use \code{"default"} for
-pinned/metadata default filters, \code{NULL} for no filtering, or a
+the server's default filters, \code{NULL} for no filtering, or a
 table-keyed list — top-level names \code{lookup} / \code{relationship} /
 \code{mapping}, keyed by code type (or \code{"from > to"} pair for mappings),
 e.g. \code{list(lookup = list("SNOMED CT" = list(active_concept = "1")))}.
 Each table entry replaces that table's default filters wholesale and
 reaches every table the query touches (e.g. both the mapping table and
 the target lookup for \code{\link[=MAP]{MAP()}}). See \code{codeminer::CODES()} for full
-details of the accepted forms.}
+details of the accepted forms.
+
+Defaults from the \code{codeminer.col_filters} option, which takes the same
+shapes, so one \code{options()} call in a script's setup applies a filter to
+every query; an explicit argument always wins. To turn filtering off
+through the option use \code{options(codeminer.col_filters = NA)} (\code{NULL}
+would unset the option).}
 
 \item{.return_raw}{Logical. If \code{TRUE}, return raw httr2 response object.
 If \code{FALSE} (default), parse JSON and return as tibble.}
