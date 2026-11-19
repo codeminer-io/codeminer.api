@@ -99,6 +99,9 @@ An explicit argument always takes priority over an option. As in `codeminer`:
   `options(codeminer.col_filters = NA)` turns filtering off; `NULL` would unset
   the option, returning to the server's defaults. A value the server rejects
   fails on every call, so fix it at the source.
+- `with_type()` and `with_col_filters()` are re-exported from `codeminer`.
+  They set the corresponding options for the duration of an expression, so
+  they work the same way over the API as they do locally.
 
 The options are read in the client session, and a value the server doesn't
 recognise fails with the same error as passing it as an argument.

@@ -14,3 +14,7 @@
   unsets the option), explicit arguments still take priority, and requests are
   unchanged when the option is unset. A value left in `.Rprofile` from the
   pre-2026 flat form of this option is now sent to the server and rejected.
+
+* `with_type()` and `with_col_filters()` are re-exported from `codeminer`
+  (>= 0.2.0), where they set the `codeminer.*` options for the duration of an
+  expression, so both now work over the API.

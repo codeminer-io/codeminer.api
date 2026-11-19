@@ -214,6 +214,39 @@ test_that("codeminer::with_type() reaches the client functions", {
   expect_identical(calls$body$to, "Read v3")
 })
 
+test_that("with_col_filters() reaches the client functions", {
+  calls <- local_capture_requests()
+  local_unset_codeminer_options()
+  # A key the test database registers, so validation stays quiet
+  scoped <- list(relationship = list("ICD-10" = NA))
+
+  # Re-exported, so it works with only this package attached
+  with_col_filters(scoped, CODES("J45", type = "ICD-10"))
+  expect_identical(calls$body$col_filters, scoped)
+
+  # Merged into an existing option by table key, then restored
+  withr::local_options(
+    codeminer.col_filters = list(lookup = list("ICD-10" = list(USAGE = "A")))
+  )
+  with_col_filters(scoped, CODES("J45", type = "ICD-10"))
+  expect_identical(
+    calls$body$col_filters,
+    list(
+      lookup = list("ICD-10" = list(USAGE = "A")),
+      relationship = list("ICD-10" = NA)
+    )
+  )
+  CODES("J45", type = "ICD-10")
+  expect_identical(
+    calls$body$col_filters,
+    list(lookup = list("ICD-10" = list(USAGE = "A")))
+  )
+
+  # NA turns filtering off for the scope
+  with_col_filters(NA, CODES("J45", type = "ICD-10"))
+  expect_true(is.na(calls$body$col_filters))
+})
+
 test_that("get_codeminer_metadata ignores codeminer.code_type", {
   withr::local_options(
     codeminer.api.url = "http://localhost:8000",
@@ -282,7 +315,7 @@ test_that("explicit col_filters overrides codeminer.col_filters", {
   calls <- local_capture_requests()
   local_unset_codeminer_options()
   withr::local_options(codeminer.col_filters = all_edges)
-  other <- list(lookup = list("ICD-10" = list(status = "1")))
+  other <- list(lookup = list("ICD-10" = list(USAGE = "A")))
 
   for (fn in names(col_filters_calls)) {
     calls$body <- NULL
