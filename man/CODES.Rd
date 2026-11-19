@@ -9,7 +9,7 @@ CODES(
   type = getOption("codeminer.code_type"),
   lookup_version = getOption("codeminer.lookup_version", default = "latest"),
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 )
@@ -44,16 +44,21 @@ preferred description for each code. Default: \code{FALSE}.}
 \item{col_filters}{Column filters for the tables this query touches. One
 of:
 \itemize{
-\item \code{"default"} (default): apply session-pinned filters
-(\code{\link[codeminer:codeminer_set_col_filters]{codeminer_set_col_filters()}}) where set, else the metadata-defined
-default filters.
+\item \code{"default"} (default): apply the \code{codeminer.col_filters} option where
+set, else the metadata-defined default filters. The option takes the
+same shapes as this argument: set it once in a script's setup (e.g.
+\code{options(codeminer.col_filters = list(relationship = list("SNOMED CT" = NA)))})
+and every query applies it; \code{options(codeminer.col_filters = NA)}
+turns filtering off (\code{NULL} would unset the option).
+\code{\link[codeminer:with_col_filters]{with_col_filters()}} sets it for one expression. See
+\code{vignette("configure-queries")}.
 \item \code{NULL} (or \code{NA}): no filtering for any table this query touches.
 \item A table-keyed list — the shape returned by \code{\link[codeminer:get_col_filters]{get_col_filters()}} — with
 top-level names \code{lookup} / \code{relationship} / \code{mapping}, keyed by code
 type (or \code{"from > to"} pair for mappings), e.g.
 \code{list(lookup = list("SNOMED CT" = list(active_concept = "1")))}.
-Each table entry \emph{replaces} that table's pinned/default filters
-wholesale; tables the list does not name keep their pins/defaults.
+Each table entry \emph{replaces} that table's current filters wholesale;
+tables the list does not name keep their option/default filters.
 \code{NA} as a table entry un-filters that one table. The filters reach
 every table the query touches (e.g. both the mapping table and the
 target lookup in \code{\link[codeminer:MAP]{MAP()}}).

@@ -1,0 +1,41 @@
+# unset options send today's request bodies
+
+    list(DESCRIPTION = list(pattern = "asthma", type = "ICD-10", 
+        lookup_version = "latest", ignore_case = TRUE, preferred_description_only = TRUE, 
+        col_filters = "default"), CODES = list(codes = "J45", type = "ICD-10", 
+        lookup_version = "latest", preferred_description_only = TRUE, 
+        col_filters = "default"), CODES_LIKE = list(pattern = "^J45", 
+        type = "ICD-10", lookup_version = "latest", preferred_description_only = TRUE, 
+        col_filters = "default"), CHILDREN = list(codes = "J45", 
+        type = "ICD-10", lookup_version = "latest", relationship_version = "latest", 
+        preferred_description_only = TRUE, col_filters = "default"), 
+        N_CHILDREN = list(codes = "J45", depth = 1, type = "ICD-10", 
+            lookup_version = "latest", relationship_version = "latest", 
+            preferred_description_only = TRUE, col_filters = "default"), 
+        PARENTS = list(codes = "J45", type = "ICD-10", lookup_version = "latest", 
+            relationship_version = "latest", preferred_description_only = TRUE, 
+            col_filters = "default"), N_PARENTS = list(codes = "J45", 
+            depth = 1, type = "ICD-10", lookup_version = "latest", 
+            relationship_version = "latest", preferred_description_only = TRUE, 
+            col_filters = "default"), ATTRIBUTES_FOR = list(codes = "J45", 
+            type = "ICD-10", lookup_version = "latest", relationship_version = "latest", 
+            relationship_types = NULL, preferred_description_only = TRUE, 
+            col_filters = "default"), HAS_ATTRIBUTES = list(codes = "J45", 
+            type = "ICD-10", lookup_version = "latest", relationship_version = "latest", 
+            relationship_types = NULL, preferred_description_only = TRUE, 
+            col_filters = "default"), RELATIONSHIP_TYPES = list(pattern = NULL, 
+            type = "ICD-10", relationship_version = "latest", lookup_version = "latest", 
+            ignore_case = TRUE, preferred_description_only = TRUE, 
+            col_filters = "default"), RELATIONSHIP_TYPES_FROM = list(
+            codes = "J45", type = "ICD-10", relationship_version = "latest", 
+            lookup_version = "latest", preferred_description_only = TRUE, 
+            col_filters = "default"), RELATIONSHIP_TYPES_TO = list(
+            codes = "J45", type = "ICD-10", relationship_version = "latest", 
+            lookup_version = "latest", preferred_description_only = TRUE, 
+            col_filters = "default"), get_relationship_tree = list(
+            codes = "J45", type = "ICD-10", expand_to_descendants = TRUE, 
+            max_codes = 10000, relationship_version = "latest", lookup_version = "latest", 
+            col_filters = "default", preferred_description_only = TRUE), 
+        MAP = list(codes = "J45", from = "ICD-10", to = "Read v3", 
+            map_version = "latest", lookup_version = "latest", col_filters = "default"))
+

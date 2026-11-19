@@ -11,7 +11,7 @@ HAS_ATTRIBUTES(
   relationship_version = getOption("codeminer.relationship_version", default = "latest"),
   relationship_types = NULL,
   preferred_description_only = TRUE,
-  col_filters = "default",
+  col_filters = getOption("codeminer.col_filters", default = "default"),
   .return_raw = FALSE,
   auth = auth_current()
 )

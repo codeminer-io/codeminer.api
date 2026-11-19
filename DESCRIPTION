@@ -1,6 +1,6 @@
 Package: codeminer.api
 Title: REST API Service for Clinical Code Mapping
-Version: 0.0.0.9007
+Version: 0.0.0.9008
 Authors@R: 
     person(given = "Alasdair",
            family = "Warwick",
@@ -27,7 +27,7 @@ Suggests:
 Config/testthat/edition: 3
 Imports:
     cli,
-    codeminer,
+    codeminer (>= 0.2.0),
     future,
     httr2,
     plumber,

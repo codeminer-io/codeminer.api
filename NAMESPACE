@@ -28,3 +28,9 @@ export(get_codeminer_metadata)
 export(get_relationship_tree)
 export(run_codeminer_api)
 export(run_codeminer_api_foreground)
+export(with_col_filters)
+export(with_type)
+importFrom(codeminer,
+  with_col_filters,
+  with_type
+)
